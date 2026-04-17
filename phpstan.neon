@@ -1,0 +1,25 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 10
+    treatPhpDocTypesAsCertain: false
+
+    paths:
+        - app/
+
+    excludePaths:
+        - ./app/Models/**.php
+        - ./app/Providers/**.php
+        - ./app/Http/Middleware/**
+        - ./app/Http/Resources/**
+        - ./app/Exceptions/**
+        - ./app/Console/Kernel.php
+        - ./app/Http/Kernel.php
+        - ./routes/**
+
+    tmpDir: var/phpstan
+    checkMissingTypehints: true
+    checkImplicitMixed: true
+    reportUnmatchedIgnoredErrors: true
+
