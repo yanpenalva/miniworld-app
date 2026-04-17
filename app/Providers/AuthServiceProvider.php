@@ -1,12 +1,13 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
-final class AuthServiceProvider extends ServiceProvider {
+final class AuthServiceProvider extends ServiceProvider
+{
     /**
      * The model to policy mappings for the application.
      *
@@ -16,12 +17,14 @@ final class AuthServiceProvider extends ServiceProvider {
         \Spatie\Permission\Models\Role::class => \App\Policies\RolePolicy::class,
         \Spatie\Activitylog\Models\Activity::class => \App\Policies\ActivityLogPolicy::class,
         \App\Models\User::class => \App\Policies\UserPolicy::class,
+        \App\Models\Project::class => \App\Policies\ProjectPolicy::class,
     ];
 
     /**
      * Register any authentication / authorization services.
      */
-    public function boot(): void {
+    public function boot(): void
+    {
         $this->registerPolicies();
     }
 }

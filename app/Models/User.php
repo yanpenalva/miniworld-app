@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -23,7 +23,8 @@ use Spatie\Permission\Traits\{HasPermissions, HasRoles};
  * @property string $updated_at
  * @property \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Role> $roles
  */
-class User extends Authenticatable implements MustVerifyEmail {
+class User extends Authenticatable implements MustVerifyEmail
+{
     use HasApiTokens;
     use HasFactory;
     use HasPermissions;
@@ -49,15 +50,23 @@ class User extends Authenticatable implements MustVerifyEmail {
         'password' => 'hashed',
     ];
 
-    public function setCpfAttribute(?string $value): void {
+    public function setCpfAttribute(?string $value): void
+    {
         $this->attributes['cpf'] = $value !== null ? preg_replace('/\D/', '', $value) : null;
     }
 
-    public function setPasswordAttribute(?string $value): void {
+    public function setPasswordAttribute(?string $value): void
+    {
         $this->attributes['password'] = $value !== null ? bcrypt($value) : null;
     }
 
-    public function isAdmin(): bool {
+    public function isAdmin(): bool
+    {
         return $this->hasRole(RolesEnum::ADMINISTRATOR->label());
+    }
+
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
     }
 }

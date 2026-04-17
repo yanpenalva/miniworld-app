@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
 import PasswordService from '@/services/PasswordService';
+import { defineStore } from 'pinia';
 
 const usePasswordStore = defineStore('password', {
   state: () => ({}),
