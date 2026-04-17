@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Database\Factories;
 
@@ -8,16 +8,16 @@ use App\Enums\ProjectStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class ProjectFactory extends Factory
+final class ProjectFactory extends Factory
 {
     public function definition(): array
     {
         return [
-            'name'        => fake()->unique()->company(),
+            'name' => fake()->unique()->company() . '-' . fake()->unique()->randomNumber(6),
             'description' => fake()->optional()->paragraph(),
-            'status'      => fake()->randomElement(ProjectStatus::cases()),
-            'budget'      => fake()->optional()->randomFloat(2, 1000, 500000),
-            'user_id'     => User::factory(),
+            'status' => fake()->randomElement(ProjectStatus::cases()),
+            'budget' => fake()->optional()->randomFloat(2, 1000, 500000),
+            'user_id' => User::factory(),
         ];
     }
 
