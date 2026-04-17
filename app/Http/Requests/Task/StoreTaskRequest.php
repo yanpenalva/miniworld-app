@@ -1,17 +1,21 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Requests\Task;
 
 use App\Enums\TaskStatus;
+use App\Traits\FailedValidation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\{Enum, Exists};
 
-class StoreTaskRequest extends FormRequest
+final class StoreTaskRequest extends FormRequest
 {
+    use FailedValidation;
+
     /**
-     * @return array<string, mixed>
+     * @return array<string, list<string|Exists|Enum>>
      */
     public function rules(): array
     {

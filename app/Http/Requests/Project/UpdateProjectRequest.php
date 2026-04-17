@@ -6,13 +6,17 @@ namespace App\Http\Requests\Project;
 
 use App\Enums\ProjectStatus;
 use App\Models\Project;
+use App\Traits\FailedValidation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\{Enum, Unique};
 
 final class UpdateProjectRequest extends FormRequest
 {
+    use FailedValidation;
+
     /**
-     * @return array<string, mixed>
+     * @return array<string, list<string|Enum|Unique>>
      */
     public function rules(): array
     {

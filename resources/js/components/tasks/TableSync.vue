@@ -1,0 +1,227 @@
+<script setup>
+import Pagination from '@/components/shared/Pagination.vue';
+import { ref } from 'vue';
+
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  pagination: {
+    type: Object,
+    default: () => ({}),
+  },
+  columns: {
+    type: Array,
+    default: () => [],
+  },
+  rows: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+const emit = defineEmits(['updatePagination', 'onConsult', 'onEdit', 'onDelete']);
+
+const itemDelete = ref(null);
+const confirmRowDelete = ref(false);
+
+const labels = {
+  loading: 'Carregando...',
+  noData: 'Nenhum registro encontrado',
+  confirmDeleteTitle: 'Tem certeza que deseja excluir esta tarefa?',
+  yes: 'Sim',
+  no: 'Não',
+  details: 'Ver detalhes',
+  edit: 'Editar',
+  delete: 'Excluir',
+};
+
+const deleteRow = (row) => {
+  confirmRowDelete.value = true;
+  itemDelete.value = row;
+};
+
+const confirmDeleteRow = (status) => {
+  confirmRowDelete.value = false;
+
+  if (status) {
+    emit('onDelete', itemDelete.value);
+  }
+
+  itemDelete.value = null;
+};
+
+const getStatusLabel = (status) => {
+  if (status === 'completed') return 'Concluída';
+  if (status === 'not_completed') return 'Não concluída';
+  return '-';
+};
+
+const getStatusColor = (status) => {
+  if (status === 'completed') return 'positive';
+  if (status === 'not_completed') return 'warning';
+  return 'grey';
+};
+
+const formatDate = (value, formattedValue) => formattedValue || value || '-';
+</script>
+
+<template>
+  <q-table
+    class="table-default-data-table"
+    flat
+    bordered
+    binary-state-sort
+    row-key="id"
+    :rows="props.rows"
+    :columns="props.columns"
+    :rows-per-page-options="[10, 15, 25, 50, 100]"
+    :loading="props.loading"
+    :loading-label="labels.loading"
+    :pagination="props.pagination"
+    :no-data-label="props.loading ? '' : labels.noData"
+    @update:pagination="emit('updatePagination', $event)"
+    @request="emit('updatePagination', $event)">
+    <template #header="scope">
+      <q-dialog v-model="confirmRowDelete" persistent>
+        <q-card>
+          <q-card-section class="confirm-dialog-title">
+            <span>
+              <strong>{{ labels.confirmDeleteTitle }}</strong>
+            </span>
+          </q-card-section>
+
+          <q-card-actions align="center" class="confirm-dialog-actions">
+            <q-btn
+              v-close-popup
+              outline
+              :label="labels.yes"
+              color="primary"
+              @click="confirmDeleteRow(true)" />
+            <q-btn
+              v-close-popup
+              :label="labels.no"
+              color="primary"
+              @click="confirmDeleteRow(false)" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <q-tr :props="scope">
+        <q-th v-for="col in scope.cols" :key="col.name" :props="scope">
+          {{ col.label }}
+        </q-th>
+      </q-tr>
+    </template>
+
+    <template #body="scope">
+      <q-tr :props="scope">
+        <q-td v-for="col in scope.cols" :key="col.name" :props="scope">
+          <div v-if="col.name === 'action'" class="actions-container">
+            <q-btn
+              v-if="col.methods?.onConsult"
+              dense
+              flat
+              round
+              color="primary"
+              icon="visibility"
+              :title="labels.details"
+              @click="emit('onConsult', scope.row)" />
+            <q-btn
+              v-if="col.methods?.onEdit"
+              dense
+              flat
+              round
+              color="primary"
+              icon="edit"
+              :title="labels.edit"
+              @click="emit('onEdit', scope.row)" />
+            <q-btn
+              v-if="col.methods?.onDelete"
+              dense
+              flat
+              round
+              color="negative"
+              icon="delete"
+              :title="labels.delete"
+              @click="deleteRow(scope.row)" />
+          </div>
+
+          <q-badge
+            v-else-if="col.name === 'status'"
+            :color="getStatusColor(scope.row.status)"
+            text-color="white"
+            class="q-px-sm q-py-xs">
+            {{ getStatusLabel(scope.row.status) }}
+          </q-badge>
+
+          <span v-else-if="col.name === 'start_date'">
+            {{ formatDate(scope.row.start_date, scope.row.start_date_formatted) }}
+          </span>
+
+          <span v-else-if="col.name === 'end_date'">
+            {{ formatDate(scope.row.end_date, scope.row.end_date_formatted) }}
+          </span>
+
+          <span v-else-if="col.name === 'project'">
+            {{ scope.row.project?.name ?? '-' }}
+          </span>
+
+          <span v-else-if="col.name === 'predecessor'">
+            {{ scope.row.predecessor?.description ?? '-' }}
+          </span>
+
+          <span v-else>
+            {{
+              typeof col.field === 'function'
+                ? col.field(scope.row)
+                : (scope.row[col.field] ?? '-')
+            }}
+          </span>
+        </q-td>
+      </q-tr>
+    </template>
+
+    <template #pagination="scope">
+      <Pagination :scope="scope" />
+    </template>
+  </q-table>
+</template>
+
+<style lang="sass" scoped>
+.table-default-data-table
+  .q-table__top,
+  thead tr:first-child th
+    background-color: #064C7E
+    color: #ffffff
+    font-weight: bold
+  thead tr th
+    position: sticky
+    z-index: 1
+  thead tr:first-child th
+    top: 0
+
+.actions-container
+  display: flex
+  justify-content: center
+  align-items: center
+  gap: 8px
+
+.confirm-dialog-title
+  display: flex
+  justify-content: center
+  align-items: center
+  text-align: center
+  padding: 16px
+
+.confirm-dialog-actions
+  display: flex
+  justify-content: center
+  gap: 12px
+
+.q-btn
+  transition: transform 0.15s ease
+  &:hover
+    transform: scale(1.1)
+</style>

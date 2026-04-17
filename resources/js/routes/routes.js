@@ -5,6 +5,7 @@ import logRoutes from '@/routes/logRoutes';
 import projectRoutes from '@/routes/projectRoutes';
 import publicRoutes from '@/routes/publicRoutes/publicRoutes';
 import roleRoutes from '@/routes/roleRoutes';
+import taskRoutes from '@/routes/taskRoutes';
 import userRoutes from '@/routes/userRoutes';
 import AdminLayout from '@layouts/AdminLayout.vue';
 import MainLayout from '@layouts/MainLayout.vue';
@@ -27,6 +28,10 @@ const routes = [
       {
         path: 'users',
         children: userRoutes.children,
+      },
+      {
+        path: 'tasks',
+        children: taskRoutes.children,
       },
       {
         path: 'profiles',
