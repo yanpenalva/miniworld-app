@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Requests\Project;
 
@@ -9,7 +9,7 @@ use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateProjectRequest extends FormRequest
+final class UpdateProjectRequest extends FormRequest
 {
     /**
      * @return array<string, mixed>
@@ -26,7 +26,7 @@ class UpdateProjectRequest extends FormRequest
                 'max:255',
                 Rule::unique('projects', 'name')->ignore($projectId),
             ],
-            'description' => ['sometimes', 'nullable', 'string'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'status' => ['sometimes', Rule::enum(ProjectStatus::class)],
             'budget' => ['sometimes', 'nullable', 'numeric', 'min:0'],
         ];
@@ -45,6 +45,7 @@ class UpdateProjectRequest extends FormRequest
             'status.enum' => 'O status do projeto deve ser ativo ou inativo.',
             'budget.numeric' => 'O orçamento deve ser um valor numérico válido.',
             'budget.min' => 'O orçamento deve ser maior ou igual a zero.',
+            'description.max' => 'A descrição do projeto não pode ultrapassar 5000 caracteres.',
         ];
     }
 }

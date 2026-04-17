@@ -1,46 +1,36 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Api\Project;
 
-use App\Actions\Project\DeleteProjectAction;
-use App\Actions\Project\StoreProjectAction;
-use App\Actions\Project\UpdateProjectAction;
+use App\Actions\Project\{DeleteProjectAction, ListProjectAction, StoreProjectAction, UpdateProjectAction};
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Requests\Project\UpdateProjectRequest;
-use App\Models\Project;
-use App\Models\User;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use App\Http\Requests\Project\{StoreProjectRequest, UpdateProjectRequest};
+use App\Models\{Project, User};
+use Illuminate\Http\{JsonResponse, Request};
+use Illuminate\Support\Fluent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
-class ProjectController extends Controller
+final class ProjectController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, ListProjectAction $action): JsonResponse
     {
         $user = $request->user();
 
-        if (! $user instanceof User) {
+        if (!$user instanceof User) {
             throw new AccessDeniedHttpException();
         }
 
-        $search = $request->string('search')->toString();
-        $status = $request->string('status')->toString();
-
-        $projects = Project::query()
-            ->where('user_id', $user->id)
-            ->when(
-                $search !== '',
-                fn ($query) => $query->where('name', 'like', '%' . $search . '%')
-            )
-            ->when(
-                $status !== '',
-                fn ($query) => $query->where('status', $status)
-            )
-            ->latest()
-            ->paginate(15);
+        $projects = $action->execute(new Fluent([
+            'user_id' => $user->id,
+            'search' => $request->string('search')->toString(),
+            'status' => $request->string('status')->toString(),
+            'order' => $request->string('order')->toString(),
+            'column' => $request->string('column')->toString(),
+            'paginated' => true,
+            'limit' => $request->integer('limit', 15),
+        ]));
 
         return response()->json($projects);
     }
@@ -49,7 +39,7 @@ class ProjectController extends Controller
     {
         $user = $request->user();
 
-        if (! $user instanceof User) {
+        if (!$user instanceof User) {
             throw new AccessDeniedHttpException();
         }
 

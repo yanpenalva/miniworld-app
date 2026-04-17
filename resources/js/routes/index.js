@@ -30,18 +30,18 @@ const handleRouteProtection = (to, from, next) => {
   });
   // User not logged in and no permission
   if (requiresAuth && !isUserLoggedIn && !hasPermissionUser) {
-    return next({ name: 'login' }); 
+    return next({ name: 'login' });
   }
   // Prevent logged-in users from accessing login page. change home to intended location.
   if (!requiresAuth && isUserLoggedIn && to.name === 'login') {
-    return next({ name: 'accessDenied' }); 
+    return next({ name: 'accessDenied' });
   }
   // User logged in but no permission
   if (requiresAuth && isUserLoggedIn && !hasPermissionUser) {
-    return next({ name: 'accessDenied' }); 
+    return next({ name: 'accessDenied' });
   }
   // Allow navigation if all conditions are met
-  return next(); 
+  return next();
 };
 
 router.beforeEach(async (to, from, next) => {

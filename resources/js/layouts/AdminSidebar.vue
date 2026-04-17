@@ -69,6 +69,18 @@ const emit = defineEmits(['update:miniState']);
         </q-item-section>
         <q-item-section class="text-white"> Perfis </q-item-section>
       </q-item>
+      
+      <q-item
+        v-ripple
+        clickable
+        exact
+        :to="{ name: 'listProjects' }"
+        :class="isActiveLink('listProjects')">
+        <q-item-section avatar class="text-white">
+          <q-icon name="folder" />
+        </q-item-section>
+        <q-item-section class="text-white"> Projetos </q-item-section>
+      </q-item>
 
       <q-item
         v-if="hasPermission([LOG_PERMISSION.LIST])"

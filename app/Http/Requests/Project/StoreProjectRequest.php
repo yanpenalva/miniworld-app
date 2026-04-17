@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Requests\Project;
 
@@ -8,7 +8,7 @@ use App\Enums\ProjectStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreProjectRequest extends FormRequest
+final class StoreProjectRequest extends FormRequest
 {
     /**
      * @return array<string, mixed>
@@ -17,7 +17,7 @@ class StoreProjectRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('projects', 'name')],
-            'description' => ['nullable', 'string'],
+            'description' => ['nullable', 'string', 'max:5000'],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
             'budget' => ['nullable', 'numeric', 'min:0'],
         ];
@@ -38,6 +38,7 @@ class StoreProjectRequest extends FormRequest
             'status.enum' => 'O status do projeto deve ser ativo ou inativo.',
             'budget.numeric' => 'O orçamento deve ser um valor numérico válido.',
             'budget.min' => 'O orçamento deve ser maior ou igual a zero.',
+            'description.max' => 'A descrição do projeto não pode ultrapassar 5000 caracteres.',
         ];
     }
 }

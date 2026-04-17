@@ -1,14 +1,11 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Tests\Feature\Api\Project;
 
-use App\Enums\ProjectStatus;
-use App\Enums\TaskStatus;
-use App\Models\Project;
-use App\Models\Task;
-use App\Models\User;
+use App\Enums\{ProjectStatus, TaskStatus};
+use App\Models\{Project, Task, User};
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
@@ -24,7 +21,7 @@ describe('ProjectCrud', function () {
             Project::factory()->count(3)->create(['user_id' => $this->user->id]);
             Project::factory()->count(2)->create(['user_id' => $this->otherUser->id]);
 
-            $this->getJson('/api/v1/projects')
+            $this->getJson('/api/v1/projects?paginated=true&limit=15')
                 ->assertOk()
                 ->assertJsonCount(3, 'data');
         });
@@ -40,7 +37,7 @@ describe('ProjectCrud', function () {
                 'status' => ProjectStatus::INACTIVE,
             ]);
 
-            $this->getJson('/api/v1/projects?status=active')
+            $this->getJson('/api/v1/projects?status=active&paginated=true&limit=15')
                 ->assertOk()
                 ->assertJsonCount(2, 'data');
         });
@@ -56,15 +53,33 @@ describe('ProjectCrud', function () {
                 'name' => 'Beta Project',
             ]);
 
-            $this->getJson('/api/v1/projects?search=Alpha')
+            $this->getJson('/api/v1/projects?search=Alpha&paginated=true&limit=15')
                 ->assertOk()
                 ->assertJsonCount(1, 'data');
         });
 
+        it('orders projects by name asc', function () {
+            Project::factory()->create([
+                'user_id' => $this->user->id,
+                'name' => 'Zulu Project',
+            ]);
+
+            Project::factory()->create([
+                'user_id' => $this->user->id,
+                'name' => 'Alpha Project',
+            ]);
+
+            $this->getJson('/api/v1/projects?column=name&order=asc&paginated=true&limit=15')
+                ->assertOk()
+                ->assertJsonPath('data.0.name', 'Alpha Project');
+        });
+
         it('requires authentication', function () {
+            Sanctum::actingAs($this->user);
             $this->app->get('auth')->forgetGuards();
 
-            $this->getJson('/api/v1/projects')->assertUnauthorized();
+            $this->getJson('/api/v1/projects?paginated=true&limit=15')
+                ->assertUnauthorized();
         });
     });
 
@@ -91,7 +106,14 @@ describe('ProjectCrud', function () {
             $this->postJson('/api/v1/projects', [
                 'name' => 'Minimal Project',
                 'status' => ProjectStatus::INACTIVE->value,
-            ])->assertCreated();
+            ])
+                ->assertCreated()
+                ->assertJsonFragment(['name' => 'Minimal Project']);
+
+            $this->assertDatabaseHas('projects', [
+                'name' => 'Minimal Project',
+                'user_id' => $this->user->id,
+            ]);
         });
 
         it('rejects duplicate project name', function () {
@@ -103,7 +125,8 @@ describe('ProjectCrud', function () {
             $this->postJson('/api/v1/projects', [
                 'name' => 'Existing Project',
                 'status' => ProjectStatus::ACTIVE->value,
-            ])->assertUnprocessable()
+            ])
+                ->assertUnprocessable()
                 ->assertJsonValidationErrors(['name']);
         });
 
@@ -117,7 +140,8 @@ describe('ProjectCrud', function () {
             $this->postJson('/api/v1/projects', [
                 'name' => 'Test Project',
                 'status' => 'invalid_status',
-            ])->assertUnprocessable()
+            ])
+                ->assertUnprocessable()
                 ->assertJsonValidationErrors(['status']);
         });
 
@@ -126,8 +150,19 @@ describe('ProjectCrud', function () {
                 'name' => 'Test Project',
                 'status' => ProjectStatus::ACTIVE->value,
                 'budget' => -100,
-            ])->assertUnprocessable()
+            ])
+                ->assertUnprocessable()
                 ->assertJsonValidationErrors(['budget']);
+        });
+
+        it('rejects description longer than allowed', function () {
+            $this->postJson('/api/v1/projects', [
+                'name' => 'Test Project',
+                'description' => str_repeat('a', 5001),
+                'status' => ProjectStatus::ACTIVE->value,
+            ])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['description']);
         });
     });
 
@@ -155,8 +190,23 @@ describe('ProjectCrud', function () {
             $this->putJson("/api/v1/projects/{$project->id}", [
                 'name' => 'Updated Name',
                 'status' => ProjectStatus::INACTIVE->value,
-            ])->assertOk()
-                ->assertJsonFragment(['name' => 'Updated Name']);
+            ])
+                ->assertOk()
+                ->assertJsonFragment(['name' => 'Updated Name'])
+                ->assertJsonFragment(['status' => ProjectStatus::INACTIVE->value]);
+        });
+
+        it('updates a project partially without name', function () {
+            $project = Project::factory()->create([
+                'user_id' => $this->user->id,
+                'name' => 'Original Name',
+            ]);
+
+            $this->putJson("/api/v1/projects/{$project->id}", [
+                'status' => ProjectStatus::INACTIVE->value,
+            ])
+                ->assertOk()
+                ->assertJsonFragment(['status' => ProjectStatus::INACTIVE->value]);
         });
 
         it('rejects duplicate name on update', function () {
@@ -169,7 +219,8 @@ describe('ProjectCrud', function () {
 
             $this->putJson("/api/v1/projects/{$project->id}", [
                 'name' => 'Other Project',
-            ])->assertUnprocessable()
+            ])
+                ->assertUnprocessable()
                 ->assertJsonValidationErrors(['name']);
         });
 
@@ -181,7 +232,28 @@ describe('ProjectCrud', function () {
 
             $this->putJson("/api/v1/projects/{$project->id}", [
                 'name' => 'Same Name',
-            ])->assertOk();
+            ])
+                ->assertOk();
+        });
+
+        it('rejects negative budget on update', function () {
+            $project = Project::factory()->create(['user_id' => $this->user->id]);
+
+            $this->putJson("/api/v1/projects/{$project->id}", [
+                'budget' => -1,
+            ])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['budget']);
+        });
+
+        it('rejects description longer than allowed on update', function () {
+            $project = Project::factory()->create(['user_id' => $this->user->id]);
+
+            $this->putJson("/api/v1/projects/{$project->id}", [
+                'description' => str_repeat('a', 5001),
+            ])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['description']);
         });
 
         it('denies updating another user project', function () {
@@ -189,7 +261,8 @@ describe('ProjectCrud', function () {
 
             $this->putJson("/api/v1/projects/{$project->id}", [
                 'name' => 'Hacked',
-            ])->assertForbidden();
+            ])
+                ->assertForbidden();
         });
     });
 

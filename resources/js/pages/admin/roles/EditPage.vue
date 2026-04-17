@@ -1,9 +1,9 @@
 <script setup>
 import FormRole from '@/components/roles/FormRole.vue';
+import useRoleStore from '@/store/useRoleStore';
+import { useQuasar } from 'quasar';
 import { onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { useQuasar } from 'quasar';
-import useRoleStore from '@/store/useRoleStore';
 
 const route = useRoute();
 const $q = useQuasar();
