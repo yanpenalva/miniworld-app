@@ -1,28 +1,9 @@
 {
     "version": "0.2",
     "language": "en,pt-BR",
-    "dictionaries": [
-        "en",
-        "pt-br"
-    ],
-    "enabledLanguageIds": [
-        "php",
-        "javascript",
-        "typescript",
-        "vue",
-        "html",
-        "css",
-        "markdown",
-        "json"
-    ],
-    "ignorePaths": [
-        "node_modules/**",
-        "vendor/**",
-        "storage/**",
-        "bootstrap/cache/**",
-        "*.min.js",
-        "*.min.css"
-    ],
+    "dictionaries": ["en", "pt-br"],
+    "enabledLanguageIds": ["php", "javascript", "typescript", "vue", "html", "css", "markdown", "json"],
+    "ignorePaths": ["node_modules/**", "vendor/**", "storage/**", "bootstrap/cache/**", "*.min.js", "*.min.css"],
     "words": [
         "addgroup",
         "adduser",
@@ -80,7 +61,7 @@
         "serverurl",
         "sidoc",
         "somaxconn",
-        "starterkit",
+        "miniworld-app",
         "startretries",
         "startsecs",
         "stopasgroup",

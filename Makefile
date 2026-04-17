@@ -131,25 +131,25 @@ logs-db:
 # ============================================
 
 shell:
-	docker exec -it starterkit-app sh
+	docker exec -it miniworld-app-app sh
 
 shell-root:
-	docker exec -u root -it starterkit-app sh
+	docker exec -u root -it miniworld-app sh
 
 front:
-	docker exec -it starterkit-app npm run dev
+	docker exec -it miniworld-app npm run dev
 
 install:
 	@printf "${GREEN}📦 Installing dependencies...${NC}\n"
-	@docker exec starterkit-app composer install
-	@docker exec starterkit-app npm install
+	@docker exec miniworld-app composer install
+	@docker exec miniworld-app npm install
 	@printf "${GREEN}✓ Dependencies installed!${NC}\n"
 
 npm:
-	docker exec starterkit-app npm $(ARGS)
+	docker exec miniworld-app npm $(ARGS)
 
 composer:
-	docker exec starterkit-app composer $(ARGS)
+	docker exec miniworld-app composer $(ARGS)
 
 # ============================================
 # Database
@@ -157,23 +157,23 @@ composer:
 
 migrate:
 	@printf "${GREEN}🔄 Running migrations...${NC}\n"
-	@docker exec starterkit-app php artisan migrate
+	@docker exec miniworld-app php artisan migrate
 	@printf "${GREEN}✓ Migrations complete!${NC}\n"
 
 rollback:
-	docker exec starterkit-app php artisan migrate:rollback
+	docker exec miniworld-app php artisan migrate:rollback
 
 fresh:
 	@printf "${YELLOW}⚠️  This will drop all tables and reseed!${NC}\n"
-	@docker exec starterkit-app php artisan migrate:fresh --seed
+	@docker exec miniworld-app php artisan migrate:fresh --seed
 	@printf "${GREEN}✓ Database refreshed!${NC}\n"
 
 db-shell:
-	docker exec -it starterkit-db psql -U postgres starterkit
+	docker exec -it miniworld-app-db psql -U postgres miniworld
 
 backup:
 	@mkdir -p backups
-	@docker exec starterkit-db pg_dump -U postgres starterkit > backups/db-backup-$(shell date +%Y%m%d-%H%M%S).sql
+	@docker exec miniworld-app-db pg_dump -U postgres miniworld > backups/db-backup-$(shell date +%Y%m%d-%H%M%S).sql
 	@printf "${GREEN}✓ Backup created in backups/ directory${NC}\n"
 
 restore:
@@ -181,19 +181,19 @@ restore:
 		printf "${YELLOW}Usage: make restore FILE=backups/db-backup.sql${NC}\n"; \
 		exit 1; \
 	fi
-	@docker exec -i starterkit-db psql -U postgres starterkit < $(FILE)
+	@docker exec -i miniworld-app-db psql -U postgres miniworld < $(FILE)
 	@printf "${GREEN}✓ Database restored!${NC}\n"
 
 db-show:
 	@printf "${GREEN}🗂️  Showing current database info...${NC}\n"
-	@docker exec starterkit-app php artisan db:show
+	@docker exec miniworld-app php artisan db:show
 
 db-table:
 	@if [ -z "$(TABLE)" ]; then \
 		printf "${YELLOW}Usage: make db-table TABLE=table_name${NC}\n"; \
 		exit 1; \
 	fi
-	@docker exec starterkit-app php artisan db:table $(TABLE)
+	@docker exec miniworld-app php artisan db:table $(TABLE)
 
 # ============================================
 # Testing
@@ -201,24 +201,24 @@ db-table:
 
 test:
 	@printf "${GREEN}🧪 Running local tests...${NC}\n"
-	@docker exec -it starterkit-app php artisan test
+	@docker exec -it miniworld-app php artisan test
 
 test-all:
 	@printf "${GREEN}🧪 Running tests in APP_ENV=testing (parallel)...${NC}\n"
-	@docker exec -e APP_ENV=testing starterkit-app php artisan optimize:clear
-	@docker exec -e APP_ENV=testing starterkit-app php artisan test --env=testing --parallel
+	@docker exec -e APP_ENV=testing miniworld-app php artisan optimize:clear
+	@docker exec -e APP_ENV=testing miniworld-app php artisan test --env=testing --parallel
 	@printf "${GREEN}✓ All tests completed.${NC}\n"
 
 test-fresh:
 	@printf "${GREEN}🔄 Clearing cache and running tests (testing env)...${NC}\n"
-	@docker exec -e APP_ENV=testing starterkit-app php artisan optimize:clear
-	@docker exec -e APP_ENV=testing starterkit-app php artisan test --env=testing
+	@docker exec -e APP_ENV=testing miniworld-app php artisan optimize:clear
+	@docker exec -e APP_ENV=testing miniworld-app php artisan test --env=testing
 	@printf "${GREEN}✓ Tests executed after cache clear.${NC}\n"
 
 test-coverage:
 	@printf "${GREEN}🧪 Generating coverage report (testing env)...${NC}\n"
-	@docker exec -e APP_ENV=testing starterkit-app php artisan optimize:clear
-	@docker exec -e APP_ENV=testing starterkit-app php artisan test --env=testing --coverage-html storage/coverage
+	@docker exec -e APP_ENV=testing miniworld-app php artisan optimize:clear
+	@docker exec -e APP_ENV=testing miniworld-app php artisan test --env=testing --coverage-html storage/coverage
 	@printf "${GREEN}✓ Coverage report generated at storage/coverage/index.html${NC}\n"
 
 # ============================================
@@ -226,16 +226,16 @@ test-coverage:
 # ============================================
 
 pint:
-	docker exec starterkit-app ./vendor/bin/pint
+	docker exec miniworld-app ./vendor/bin/pint
 
 check:
-	docker exec starterkit-app ./vendor/bin/pint --test
+	docker exec miniworld-app ./vendor/bin/pint --test
 
 ide:
 	@printf "${GREEN}🔧 Generating IDE helpers...${NC}\n"
-	@docker exec starterkit-app php artisan ide-helper:generate
-	@docker exec starterkit-app php artisan ide-helper:models --nowrite
-	@docker exec starterkit-app php artisan ide-helper:meta
+	@docker exec miniworld-app php artisan ide-helper:generate
+	@docker exec miniworld-app php artisan ide-helper:models --nowrite
+	@docker exec miniworld-app php artisan ide-helper:meta
 	@printf "${GREEN}✓ IDE helpers generated!${NC}\n"
 
 # ============================================
@@ -243,13 +243,13 @@ ide:
 # ============================================
 
 artisan:
-	docker exec starterkit-app php artisan $(ARGS)
+	docker exec miniworld-app php artisan $(ARGS)
 
 tinker:
-	docker exec -it starterkit-app php artisan tinker
+	docker exec -it miniworld-app php artisan tinker
 
 queue:
-	docker exec -it starterkit-app php artisan queue:work
+	docker exec -it miniworld-app php artisan queue:work
 
 horizon:
 	@printf "${GREEN}🌅 Horizon: http://localhost/horizon${NC}\n"
@@ -265,23 +265,23 @@ pulse:
 # ============================================
 
 cache:
-	@docker exec starterkit-app php artisan cache:clear
-	@docker exec starterkit-app php artisan config:clear
-	@docker exec starterkit-app php artisan route:clear
-	@docker exec starterkit-app php artisan view:clear
-	@docker exec starterkit-app php artisan event:clear
+	@docker exec miniworld-app php artisan cache:clear
+	@docker exec miniworld-app php artisan config:clear
+	@docker exec miniworld-app php artisan route:clear
+	@docker exec miniworld-app php artisan view:clear
+	@docker exec miniworld-app php artisan event:clear
 
 clear:
-	@docker exec starterkit-app php artisan optimize:clear
+	@docker exec miniworld-app php artisan optimize:clear
 
 optimize:
-	@docker exec starterkit-app php artisan optimize
-	@docker exec starterkit-app php artisan config:cache
-	@docker exec starterkit-app php artisan route:cache
-	@docker exec starterkit-app php artisan view:cache
+	@docker exec miniworld-app php artisan optimize
+	@docker exec miniworld-app php artisan config:cache
+	@docker exec miniworld-app php artisan route:cache
+	@docker exec miniworld-app php artisan view:cache
 
 optimize-test:
-	@docker exec -e APP_ENV=testing starterkit-app php artisan optimize
+	@docker exec -e APP_ENV=testing miniworld-app php artisan optimize
 
 # ============================================
 # Changelog & Releases (Change log + Semantic Release)
@@ -289,12 +289,12 @@ optimize-test:
 
 changelog: ## Generate/update CHANGELOG.md
 	@printf "${BLUE}📝 Generating changelog...${NC}\n"
-	@docker exec starterkit-app npm run changelog
+	@docker exec miniworld-app npm run changelog
 	@printf "${GREEN}✓ Changelog updated in CHANGELOG.md${NC}\n"
 
 changelog-preview: ## Preview changelog without committing
 	@printf "${BLUE}👀 Previewing changelog...${NC}\n"
-	@docker exec starterkit-app npm run changelog:preview
+	@docker exec miniworld-app npm run changelog:preview
 	@printf "${GREEN}✓ Preview complete (no changes committed)${NC}\n"
 
 release: ## Create a new release (auto patch bump)
@@ -309,17 +309,17 @@ release: ## Create a new release (auto patch bump)
 		printf "${RED}✗ Release cancelled${NC}\n"; \
 		exit 1; \
 	fi
-	@docker exec starterkit-app npm run release
+	@docker exec miniworld-app npm run release
 	@printf "${GREEN}✓ Release created and pushed!${NC}\n"
 
 release-patch: ## Create patch release (0.0.X)
 	@printf "${BLUE}🚀 Creating PATCH release...${NC}\n"
-	@docker exec starterkit-app npm run release:patch
+	@docker exec miniworld-app npm run release:patch
 	@printf "${GREEN}✓ Patch release created!${NC}\n"
 
 release-minor: ## Create minor release (0.X.0)
 	@printf "${BLUE}🚀 Creating MINOR release...${NC}\n"
-	@docker exec starterkit-app npm run release:minor
+	@docker exec miniworld-app npm run release:minor
 	@printf "${GREEN}✓ Minor release created!${NC}\n"
 
 release-major: ## Create major release (X.0.0)
@@ -330,7 +330,7 @@ release-major: ## Create major release (X.0.0)
 		printf "${RED}✗ Release cancelled${NC}\n"; \
 		exit 1; \
 	fi
-	@docker exec starterkit-app npm run release:major
+	@docker exec miniworld-app npm run release:major
 	@printf "${GREEN}✓ Major release created!${NC}\n"
 
 tag-list: ## Show all git tags

@@ -4,7 +4,7 @@
 </h1>
 
 <p style="font-size:16px; margin-bottom:20px;">
-    A password change request has been submitted through the Starterkit Laravue system.
+    A password change request has been submitted through the Miniworld system.
 </p>
 
 <p style="text-align:center; margin: 32px 0;">
@@ -31,6 +31,6 @@
 
 <p style="margin-top:24px; font-size:14px; color:#333;">
     Sincerely,<br>
-    Starterkit Laravue Team
+    miniworld-app Laravue Team
 </p>
 @endcomponent

@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         APP_ENV: ${APP_ENV:-local}
-    container_name: starterkit-app
+    container_name: miniworld-app
     restart: always
     ports:
       - "3000:3000"
@@ -19,7 +19,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - PHP_ENABLE_XDEBUG=1
     networks:
-      - starterkit-network
+      - miniworld-app-network
     depends_on:
       - db
       - redis
@@ -27,7 +27,7 @@ services:
 
   nginx:
     image: nginx:1.27.4-alpine
-    container_name: starterkit-nginx
+    container_name: miniworld-app-nginx
     restart: always
     ports:
       - "8001:80"
@@ -37,57 +37,57 @@ services:
     depends_on:
       - app
     networks:
-      - starterkit-network
+      - miniworld-app-network
 
   db:
     image: postgres:16.8
-    container_name: starterkit-db
+    container_name: miniworld-app-db
     restart: always
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=starterkit
+      - POSTGRES_DB=miniworld-app
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./docker/PGSQL/init_db.sql:/docker-entrypoint-initdb.sh
     networks:
-      - starterkit-network
+      - miniworld-app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7.2.4-alpine
-    container_name: starterkit-redis
+    container_name: miniworld-app-redis
     restart: always
     ports:
       - "6379:6379"
     networks:
-      - starterkit-network
+      - miniworld-app-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   mailpit:
     image: axllent/mailpit:v1.15.1
-    container_name: starterkit-mailpit
+    container_name: miniworld-app-mailpit
     restart: always
     ports:
       - "1025:1025"
       - "8025:8025"
     networks:
-      - starterkit-network
+      - miniworld-app-network
 
 volumes:
   pg_data:
     driver: local
 
 networks:
-  starterkit-network:
+  miniworld-app-network:
     driver: bridge

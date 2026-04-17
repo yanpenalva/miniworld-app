@@ -24,15 +24,15 @@ export default defineConfig({
   },
 
   output: 'CHANGELOG.md',
-  
+
   excludeAuthors: [
     'dependabot[bot]',
     'renovate[bot]'
   ],
 
   // Change title based on your project
-  name: 'StarterKit',
-  
+  name: 'MiniWorld Changelog',
+
   // Custom scopes for your Laravel project
   scopes: {
     api: 'API',
@@ -46,7 +46,7 @@ export default defineConfig({
 
   from: '2.0.0', // Start from latest tag
   to: 'HEAD',
-  
+
   // Changelog sections order
   sections: [
     '🚀 Features',

@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -7,7 +8,7 @@ use Illuminate\Support\Str;
 Route::prefix('v1')->group(function () {
     Route::get('/', function () {
         return response()->json([
-            'message' => Str::upper('API_STARTERKIT_' . config('app.env') . '_ONLINE'),
+            'message' => Str::upper('API_MINIWORLD_' . config('app.env') . '_ONLINE'),
         ]);
     });
 
