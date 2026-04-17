@@ -7,10 +7,18 @@ namespace App\Actions\Project;
 use App\Models\Project;
 use App\Models\User;
 
-class StoreProjectAction
+final readonly class StoreProjectAction
 {
+    /**
+     * @param array<string, mixed> $data
+     */
     public function handle(User $user, array $data): Project
     {
-        return $user->projects()->create($data);
+        $project = new Project();
+        $project->fill($data);
+        $project->user()->associate($user);
+        $project->save();
+
+        return $project->refresh();
     }
 }

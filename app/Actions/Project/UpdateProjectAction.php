@@ -6,8 +6,11 @@ namespace App\Actions\Project;
 
 use App\Models\Project;
 
-class UpdateProjectAction
+final readonly class UpdateProjectAction
 {
+    /**
+     * @param array<string, mixed> $data
+     */
     public function handle(Project $project, array $data): Project
     {
         $project->update($data);

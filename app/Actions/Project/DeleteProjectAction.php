@@ -7,7 +7,7 @@ namespace App\Actions\Project;
 use App\Models\Project;
 use Illuminate\Validation\ValidationException;
 
-class DeleteProjectAction
+final readonly class DeleteProjectAction
 {
     public function handle(Project $project): void
     {

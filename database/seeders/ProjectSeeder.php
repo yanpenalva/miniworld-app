@@ -2,31 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Database\Factories;
+namespace Database\Seeders;
 
+use App\Models\Project;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Seeder;
 
-class ProjectFactory extends Factory
+class ProjectSeeder extends Seeder
 {
-    public function definition(): array
+    public function run(): void
     {
-        return [
-            'name'        => fake()->unique()->company(),
-            'description' => fake()->optional()->paragraph(),
-            'status'      => fake()->randomElement(['active', 'inactive']),
-            'budget'      => fake()->optional()->randomFloat(2, 1000, 500000),
-            'user_id'     => User::factory(),
-        ];
-    }
+        $users = User::all();
 
-    public function active(): static
-    {
-        return $this->state(['status' => 'active']);
-    }
+        if ($users->isEmpty()) {
+            return;
+        }
 
-    public function inactive(): static
-    {
-        return $this->state(['status' => 'inactive']);
+        $users->each(fn (User $user) =>
+            Project::factory()
+                ->count(5)
+                ->create(['user_id' => $user->id])
+        );
     }
 }

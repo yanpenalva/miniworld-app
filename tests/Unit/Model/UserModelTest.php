@@ -1,10 +1,13 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Tests\Unit\Model;
 
 use App\Enums\RolesEnum;
+use App\Models\Project;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Mockery;
 
 describe('UserModel Test', function () {
@@ -18,6 +21,7 @@ describe('UserModel Test', function () {
     it('has correct hidden attributes', function () {
         $hidden = ['password', 'remember_token'];
         $user = new User();
+
         expect($user->getHidden())->toEqual($hidden);
     });
 
@@ -28,26 +32,31 @@ describe('UserModel Test', function () {
             'id' => 'int',
         ];
         $user = new User();
+
         expect($user->getCasts())->toEqual($casts);
-    })->group('model');
+    });
 
     it('has correct table name', function () {
         $user = new User();
+
         expect($user->getTable())->toBe('users');
     });
 
     it('has correct primary key', function () {
         $user = new User();
+
         expect($user->getKeyName())->toBe('id');
     });
 
     it('has correct timestamps', function () {
         $user = new User();
-        expect($user->usesTimestamps())->toBe(true);
+
+        expect($user->usesTimestamps())->toBeTrue();
     });
 
     it('has correct model name', function () {
         $user = new User();
+
         expect($user::class)->toBe(User::class);
     });
 
@@ -68,4 +77,13 @@ describe('UserModel Test', function () {
 
         expect($user->isAdmin())->toBeFalse();
     });
-})->group('model', 'userModel');
+
+    it('has a projects relationship', function () {
+        $user = new User();
+        $relation = $user->projects();
+
+        expect($relation)->toBeInstanceOf(HasMany::class)
+            ->and($relation->getRelated())->toBeInstanceOf(Project::class)
+            ->and($relation->getForeignKeyName())->toBe('user_id');
+    });
+})->group('model', 'user-model');

@@ -11,24 +11,33 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ProjectController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            throw new AccessDeniedHttpException();
+        }
+
+        $search = $request->string('search')->toString();
+        $status = $request->string('status')->toString();
+
         $projects = Project::query()
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $user->id)
             ->when(
-                $request->search,
-                fn ($q, $search) =>
-                $q->where('name', 'like', "%{$search}%")
+                $search !== '',
+                fn ($query) => $query->where('name', 'like', '%' . $search . '%')
             )
             ->when(
-                $request->status,
-                fn ($q, $status) =>
-                $q->where('status', $status)
+                $status !== '',
+                fn ($query) => $query->where('status', $status)
             )
             ->latest()
             ->paginate(15);
@@ -38,7 +47,13 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request, StoreProjectAction $action): JsonResponse
     {
-        $project = $action->handle($request->user(), $request->validated());
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            throw new AccessDeniedHttpException();
+        }
+
+        $project = $action->handle($user, $request->validated());
 
         return response()->json($project, 201);
     }
