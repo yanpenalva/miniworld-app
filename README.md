@@ -372,7 +372,7 @@ docker compose -f docker-compose.prod.yml up -d
 docker pull yanbpenalva/miniworld:latest
 ```
 
-Repositório: https://hub.docker.com/r/yanbpenalva/miniworld
+Repositório: https://hub.docker.com/r/yanbpenalva/miniworld-app
 
 ---
 
