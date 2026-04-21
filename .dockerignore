@@ -6,7 +6,6 @@ node_modules
 vendor
 storage/**
 bootstrap/cache/**
-tests/**
 docker/PGSQL
 *.log
 *.sqlite
