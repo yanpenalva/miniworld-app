@@ -62,7 +62,12 @@ ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
 COPY . .
 
-RUN composer run-script post-autoload-dump \
+RUN mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions \
+        storage/framework/views storage/logs \
+    && chmod -R 775 bootstrap/cache storage
+
+RUN APP_KEY=base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa= \
+    composer run-script post-autoload-dump \
     && npm run build \
     && rm -rf node_modules
 
