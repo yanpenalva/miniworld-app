@@ -5,9 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @if (app()->environment('development', 'staging'))
-        <meta name="robots" content="noindex">
+    <meta name="robots" content="noindex">
     @endif
-    <title>Starter Kit</title>
+    <title>Mini Mundo</title>
     <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon.png">
     <link rel="icon" href="data:,">
 

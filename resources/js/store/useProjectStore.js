@@ -30,10 +30,10 @@ const useProjectStore = defineStore('projects', {
 
       this.projects = Array.isArray(data?.data) ? data.data : [];
       this.meta = {
-        current_page: Number(data?.current_page ?? 1),
-        per_page: Number(data?.per_page ?? params?.limit ?? 15),
-        total: Number(data?.total ?? 0),
-        last_page: Number(data?.last_page ?? 1),
+        current_page: Number(data?.meta?.current_page ?? 1),
+        per_page: Number(data?.meta?.per_page ?? params?.limit ?? 10),
+        total: Number(data?.meta?.total ?? 0),
+        last_page: Number(data?.meta?.last_page ?? 1),
       };
     },
 

@@ -7,14 +7,16 @@ namespace App\Http\Controllers\Api\Project;
 use App\Actions\Project\{DeleteProjectAction, ListProjectAction, StoreProjectAction, UpdateProjectAction};
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\{StoreProjectRequest, UpdateProjectRequest};
+use App\Http\Resources\ProjectResource;
 use App\Models\{Project, User};
-use Illuminate\Http\{JsonResponse, Request};
+use Illuminate\Http\{JsonResponse, Request, Response};
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Fluent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 final class ProjectController extends Controller
 {
-    public function index(Request $request, ListProjectAction $action): JsonResponse
+    public function index(Request $request, ListProjectAction $action): AnonymousResourceCollection
     {
         $user = $request->user();
 
@@ -32,7 +34,7 @@ final class ProjectController extends Controller
             'limit' => $request->integer('limit', 15),
         ]));
 
-        return response()->json($projects);
+        return ProjectResource::collection($projects);
     }
 
     public function store(StoreProjectRequest $request, StoreProjectAction $action): JsonResponse
@@ -45,29 +47,33 @@ final class ProjectController extends Controller
 
         $project = $action->handle($user, $request->validated());
 
-        return response()->json($project, 201);
+        return (new ProjectResource($project->load('tasks')))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    public function show(Request $request, Project $project): JsonResponse
+    public function show(Request $request, Project $project): ProjectResource
     {
         $this->authorize('view', $project);
 
-        return response()->json($project);
+        return new ProjectResource($project->load('tasks'));
     }
 
-    public function update(UpdateProjectRequest $request, Project $project, UpdateProjectAction $action): JsonResponse
+    public function update(UpdateProjectRequest $request, Project $project, UpdateProjectAction $action): ProjectResource
     {
         $this->authorize('update', $project);
 
-        return response()->json($action->handle($project, $request->validated()));
+        $updated = $action->handle($project, $request->validated());
+
+        return new ProjectResource($updated->load('tasks'));
     }
 
-    public function destroy(Request $request, Project $project, DeleteProjectAction $action): JsonResponse
+    public function destroy(Request $request, Project $project, DeleteProjectAction $action): Response
     {
         $this->authorize('delete', $project);
 
         $action->handle($project);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

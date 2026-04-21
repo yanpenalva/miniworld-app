@@ -1,14 +1,13 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Database\Seeders;
 
-use App\Models\Project;
-use App\Models\User;
+use App\Models\{Project, User};
 use Illuminate\Database\Seeder;
 
-class ProjectSeeder extends Seeder
+final class ProjectSeeder extends Seeder
 {
     public function run(): void
     {
@@ -18,9 +17,9 @@ class ProjectSeeder extends Seeder
             return;
         }
 
-        $users->each(fn (User $user) =>
-            Project::factory()
-                ->count(5)
+        $users->each(
+            fn (User $user) => Project::factory()
+                ->count(20)
                 ->create(['user_id' => $user->id])
         );
     }

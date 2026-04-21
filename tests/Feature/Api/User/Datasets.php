@@ -182,6 +182,6 @@ dataset('emailNotAvailable', [
         'password' => $pass,
         'password_confirmation' => $pass,
         'cpf' => preg_replace('/\D/', '', fake('pt_BR')->cpf()),
-        'role' => RolesEnum::ADMINIS->value,
+        'role' => RolesEnum::ADMINISTRATOR->value,
     ],
 ]);

@@ -36,7 +36,7 @@ const togglePasswordVisibility = () => {
 
 <template>
   <q-form @submit.prevent="auth">
-    <span class="text-weight-medium text--font-13">Usuário ou E-mail</span>
+    <span class="text-weight-medium text--font-13">E-mail</span>
     <q-input
       v-model="authStore.externalCredentials.email"
       class="input-color-blue input--margin-bottom"

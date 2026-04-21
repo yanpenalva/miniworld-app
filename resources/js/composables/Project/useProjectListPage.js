@@ -18,7 +18,7 @@ const useProjectListPage = () => {
     sortBy: 'id',
     descending: true,
     page: 1,
-    rowsPerPage: 15,
+    rowsPerPage: 10,
     rowsNumber: 0,
   });
 

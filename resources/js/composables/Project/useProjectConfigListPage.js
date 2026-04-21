@@ -41,6 +41,13 @@ export default function useProjectConfigListPage() {
       sortable: false,
     },
     {
+      name: 'progress',
+      label: 'Progresso',
+      align: 'left',
+      field: 'progress',
+      sortable: false,
+    },
+    {
       name: 'action',
       label: 'Opções',
       align: 'center',
@@ -54,7 +61,5 @@ export default function useProjectConfigListPage() {
     },
   ]);
 
-  return {
-    columns,
-  };
+  return { columns };
 }

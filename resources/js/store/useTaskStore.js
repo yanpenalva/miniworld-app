@@ -37,13 +37,13 @@ const useTaskStore = defineStore('tasks', {
       this.meta = payload?.meta
         ? {
             current_page: Number(payload.meta.current_page ?? 1),
-            per_page: Number(payload.meta.per_page ?? params?.limit ?? 15),
+            per_page: Number(payload.meta.per_page ?? params?.limit ?? 10),
             total: Number(payload.meta.total ?? this.tasks.length),
             last_page: Number(payload.meta.last_page ?? 1),
           }
         : {
             current_page: 1,
-            per_page: Number(params?.limit ?? 15),
+            per_page: Number(params?.limit ?? 10),
             total: this.tasks.length,
             last_page: 1,
           };

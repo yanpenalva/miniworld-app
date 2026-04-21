@@ -10,31 +10,39 @@ const isGuest = computed(() => authStore.getRoles?.some(({ slug }) => slug === '
 
 const cards = [
   {
-    icon: 'school',
-    title: 'Sistema Acadêmico Integrado',
-    description: 'Gerencie usuários, perfis e permissões com facilidade.',
+    icon: 'folder_open',
+    title: 'Gestão de Projetos',
+    description:
+      'Crie e gerencie projetos com controle de status, orçamento e progresso de tarefas em tempo real.',
     color: 'primary',
   },
   {
-    icon: 'lightbulb',
-    title: 'Inovações',
-    description: 'Plataforma pronta para expansão e novos módulos.',
-    color: 'amber-8',
+    icon: 'task_alt',
+    title: 'Controle de Tarefas',
+    description:
+      'Organize tarefas por projeto, defina predecessoras, datas e acompanhe o que foi concluído.',
+    color: 'green-6',
   },
   {
     icon: 'security',
     title: 'Acesso Seguro',
-    description: 'Controle granular de permissões por perfil.',
-    color: 'green-6',
+    description:
+      'Autenticação via Sanctum com controle granular de permissões por perfil de usuário.',
+    color: 'amber-8',
   },
 ];
 </script>
 
 <template>
   <PageWrapper>
-    <template #title v-if="!isGuest">
+    <template v-if="!isGuest" #title>
       <q-card class="q-mb-md">
-        <q-card-section class="text-h5"> Painel Administrativo </q-card-section>
+        <q-card-section>
+          <div class="text-h5 text-weight-medium">Mini Mundo</div>
+          <div class="text-caption text-grey-7">
+            Bem-vindo, {{ userName }}. Plataforma de gestão de projetos e tarefas.
+          </div>
+        </q-card-section>
       </q-card>
     </template>
 

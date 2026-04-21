@@ -80,6 +80,8 @@ final readonly class ListProjectAction
             $limit = 100;
         }
 
+        $query->with('tasks');
+
         return $paginated
             ? $query->paginate($limit)->withQueryString()
             : $query->get();

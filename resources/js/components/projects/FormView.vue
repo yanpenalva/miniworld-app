@@ -19,6 +19,12 @@ const getStatusColor = (status) => {
   if (status === 'inactive') return 'negative';
   return 'grey';
 };
+
+const progressColor = (percentage) => {
+  if (percentage >= 100) return 'positive';
+  if (percentage >= 50) return 'warning';
+  return 'negative';
+};
 </script>
 
 <template>
@@ -48,6 +54,21 @@ const getStatusColor = (status) => {
         <div class="col-12">
           <div class="text-caption text-grey-7">Descrição</div>
           <div class="text-body1">{{ props.project?.description ?? '-' }}</div>
+        </div>
+
+        <div class="col-12">
+          <div class="text-caption text-grey-7">Progresso das tarefas</div>
+          <div class="text-caption q-mt-xs q-mb-xs">
+            {{ props.project?.progress?.completed ?? 0 }}/{{
+              props.project?.progress?.total ?? 0
+            }}
+            ({{ props.project?.progress?.percentage ?? 0 }}%)
+          </div>
+          <q-linear-progress
+            rounded
+            size="10px"
+            :value="(props.project?.progress?.percentage ?? 0) / 100"
+            :color="progressColor(props.project?.progress?.percentage ?? 0)" />
         </div>
       </div>
     </q-card-section>

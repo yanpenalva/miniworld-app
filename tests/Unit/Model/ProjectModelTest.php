@@ -1,19 +1,16 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace Tests\Unit\Model;
 
 use App\Enums\ProjectStatus;
-use App\Models\Project;
-use App\Models\Task;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\{Project, Task, User};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 
 describe('ProjectModel Test', function () {
     it('has correct fillable attributes', function () {
-        $fillable = ['name', 'description', 'status', 'budget', 'user_id'];
+        $fillable = ['id', 'name', 'description', 'status', 'budget', 'user_id', 'created_at', 'updated_at', 'deleted_at'];
         $project = new Project();
 
         expect($project->getFillable())->toEqual($fillable);

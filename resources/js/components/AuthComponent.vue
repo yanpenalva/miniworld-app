@@ -20,7 +20,7 @@ const { textPage } = useAuthenticateConfigPage();
           <div class="col-10">
             <div class="text-white q-pa-xl" style="bottom: 0px">
               <span class="text__h3--40px text--line-height text-weight-medium"
-                >Seja bem-vinda(o)<br />ao Starter KIT!</span
+                >Seja bem-vinda(o)<br />ao Mini Mundo!</span
               >
             </div>
           </div>

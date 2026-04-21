@@ -64,6 +64,20 @@ const getStatusColor = (status) => {
   if (status === 'inactive') return 'negative';
   return 'grey';
 };
+
+const progressColor = (percentage) => {
+  if (percentage >= 100) return 'positive';
+  if (percentage >= 50) return 'warning';
+  return 'negative';
+};
+
+const getCellValue = (row, col) => {
+  return typeof col.field === 'function' ? col.field(row) : (row[col.field] ?? '-');
+};
+
+const shouldShowTooltip = (value) => {
+  return typeof value === 'string' && value.length > 40;
+};
 </script>
 
 <template>
@@ -159,12 +173,37 @@ const getStatusColor = (status) => {
             {{ formatCurrencyBRL(scope.row.budget) }}
           </span>
 
+          <div v-else-if="col.name === 'progress'" class="progress-cell">
+            <div class="text-caption q-mb-xs">
+              {{ scope.row.progress?.completed ?? 0 }}/{{
+                scope.row.progress?.total ?? 0
+              }}
+              ({{ scope.row.progress?.percentage ?? 0 }}%)
+            </div>
+            <q-linear-progress
+              rounded
+              size="8px"
+              :value="(scope.row.progress?.percentage ?? 0) / 100"
+              :color="progressColor(scope.row.progress?.percentage ?? 0)" />
+          </div>
+
+          <div
+            v-else-if="col.name === 'name' || col.name === 'description'"
+            class="truncate-cell">
+            <span class="truncate-text">
+              {{ getCellValue(scope.row, col) }}
+            </span>
+            <q-tooltip
+              v-if="shouldShowTooltip(getCellValue(scope.row, col))"
+              anchor="top middle"
+              self="bottom middle"
+              max-width="320px">
+              {{ getCellValue(scope.row, col) }}
+            </q-tooltip>
+          </div>
+
           <span v-else>
-            {{
-              typeof col.field === 'function'
-                ? col.field(scope.row)
-                : (scope.row[col.field] ?? '-')
-            }}
+            {{ getCellValue(scope.row, col) }}
           </span>
         </q-td>
       </q-tr>
@@ -206,6 +245,20 @@ const getStatusColor = (status) => {
   display: flex
   justify-content: center
   gap: 12px
+
+.progress-cell
+  min-width: 120px
+
+.truncate-cell
+  position: relative
+  max-width: 220px
+
+.truncate-text
+  display: block
+  max-width: 220px
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
 
 .q-btn
   transition: transform 0.15s ease
