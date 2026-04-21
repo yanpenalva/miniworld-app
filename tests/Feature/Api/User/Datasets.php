@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types = 1);
 use App\Enums\RolesEnum;
 
@@ -101,7 +102,7 @@ dataset('registerUser', [
         'password' => $pass,
         'password_confirmation' => $pass,
         'cpf' => preg_replace('/\D/', '', fake('pt_BR')->cpf()),
-        'role' => RolesEnum::GUEST->value,
+        'role' => RolesEnum::ADMINISTRATOR->value,
     ],
 ]);
 
@@ -181,6 +182,6 @@ dataset('emailNotAvailable', [
         'password' => $pass,
         'password_confirmation' => $pass,
         'cpf' => preg_replace('/\D/', '', fake('pt_BR')->cpf()),
-        'role' => RolesEnum::GUEST->value,
+        'role' => RolesEnum::ADMINIS->value,
     ],
 ]);
