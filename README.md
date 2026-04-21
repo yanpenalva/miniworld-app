@@ -1,365 +1,212 @@
-# 🚀 LaraVue Starter Kit
+# Miniworld
 
-The **LaraVue Starter Kit** is a full-stack boilerplate combining **Laravel 13** and **Vue 3 + Quasar Framework**, built for scalable, testable, and maintainable web applications.
-It provides a pre-configured environment for authentication, user and permission management, dashboards, REST APIs, automated testing, and development observability.
+Aplicação fullstack de gerenciamento de projetos e tarefas, desenvolvida como teste técnico.
 
----
+## Stack
 
-## 📑 Table of Contents
+| Camada          | Tecnologia                    |
+| --------------- | ----------------------------- |
+| Backend         | PHP 8.4 + Laravel 12          |
+| Frontend        | Vue 3 + Quasar Framework      |
+| Banco de dados  | PostgreSQL 16                 |
+| Cache           | Redis 7                       |
+| Auth            | Laravel Sanctum (token-based) |
+| Containerização | Docker + Docker Compose       |
+| CI/CD           | GitHub Actions                |
+| Registry        | Docker Hub                    |
 
-1. [Architecture Overview](#️-architecture-overview)
-2. [Installation](#️-installation)
-3. [Husky (Git Hooks)](#️-husky-git-hooks)
-4. [Database Configuration](#️-database-configuration)
-5. [Fix Access Permissions (Spatie Permission Cache)](#️-fix-access-permissions-spatie-permission-cache)
-6. [Key Features](#️-key-features)
-7. [Technology Stack](#️-technology-stack)
-8. [Queues and Horizon Monitoring](#️-queues-and-horizon-monitoring)
-9. [Project Architecture](#️-project-architecture)
-10. [Docker Services](#️-docker-services)
-11. [Testing](#️-testing)
-13. [Best Practices](#️-best-practices)
-13. [Commit Conventions](#️-commit-conventions)
-14. [Code Standards](#️-code-standards)
+## Por que Sanctum?
 
----
+Sanctum foi escolhido por ser a solução oficial do Laravel para APIs SPA/mobile com autenticação stateless via token Bearer. É leve, sem overhead de OAuth, e adequado ao escopo do teste.
 
-## ⚙️ Architecture Overview
+## Entidades e regras de negócio
 
-This starter kit runs entirely in **Docker (Alpine)** containers for consistent local and CI environments.
-It includes containers for the app, Nginx, PostgreSQL, Redis, and Mailpit, ensuring isolated and reproducible development.
+### Projeto
 
----
+- Nome obrigatório e único por usuário
+- Status: `active` | `inactive`
+- Orçamento (`budget`) opcional
+- Não pode ser excluído se possuir tarefas vinculadas
 
-## 📥 Installation
+### Tarefa
 
-### 1️⃣ Clone the repository
+- Descrição obrigatória
+- `project_id` obrigatório (FK para projetos)
+- `predecessor_task_id` opcional (auto-FK para tarefas)
+- Status: `completed` | `not_completed`
+- `end_date` deve ser maior ou igual a `start_date`
+- Não pode ser excluída se for predecessora de outra tarefa
 
-```bash
-git clone https://github.com/yanbrasiliano/starter-kit-laravue.git
-cd starter-kit-laravue
-```
+## Pré-requisitos
 
-### 2️⃣ Build and start containers
+- Docker >= 24
+- Docker Compose >= 2.20
+- Git
 
-```bash
-docker compose up -d --build --force-recreate --remove-orphans
-```
-
-### 3️⃣ Environment setup
+## Como rodar localmente
 
 ```bash
+# 1. Clone o repositório
+git clone https://github.com/yanbpenalva/miniworld.git
+cd miniworld
+
+# 2. Copie o .env
 cp .env.example .env
+
+# 3. Suba os containers
+docker compose up -d --build
+
+# 4. Instale dependências e gere a key
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+
+# 5. Execute as migrations
+docker compose exec app php artisan migrate
+
+# 6. (Opcional) Popule com dados de exemplo
+docker compose exec app php artisan db:seed
 ```
 
-Verify your database settings:
+A aplicação estará disponível em:
 
-```
-DB_CONNECTION=pgsql
-DB_HOST=db
-DB_PORT=5432
-DB_DATABASE=starterkit
-DB_USERNAME=postgres
-DB_PASSWORD=admin
-```
+| Serviço            | URL                   |
+| ------------------ | --------------------- |
+| App (frontend/API) | http://localhost:8001 |
+| Mailpit (e-mail)   | http://localhost:8025 |
 
-### 4️⃣ Install dependencies
+## Credenciais padrão
+
+As credenciais abaixo estão expostas intencionalmente por ser um projeto de teste, para facilitar a avaliação.
+
+### Banco de dados (PostgreSQL)
+
+| Parâmetro | Valor           |
+| --------- | --------------- |
+| Host      | `localhost`     |
+| Porta     | `5432`          |
+| Database  | `miniworld-app` |
+| Usuário   | `postgres`      |
+| Senha     | `admin`         |
+
+### Usuário demo (após seeder)
+
+| Parâmetro | Valor                 |
+| --------- | --------------------- |
+| E-mail    | `demo@miniworld.test` |
+| Senha     | `password`            |
+
+### Redis
+
+| Parâmetro | Valor       |
+| --------- | ----------- |
+| Host      | `localhost` |
+| Porta     | `6379`      |
+| Senha     | nenhuma     |
+
+## Migrations e seeders
 
 ```bash
-docker exec -it starterkit-app bash
-composer install
-npm install
-php artisan migrate --seed
+# Rodar migrations
+docker compose exec app php artisan migrate
+
+# Reverter tudo e recriar
+docker compose exec app php artisan migrate:fresh
+
+# Rodar seeders
+docker compose exec app php artisan db:seed
+
+# Tudo junto
+docker compose exec app php artisan migrate:fresh --seed
 ```
 
-### 5️⃣ Fix permissions (Linux/Mac)
+## Executar testes
 
 ```bash
-chmod +x permissions.sh
-./permissions.sh
+# Todos os testes
+docker compose exec app php artisan test
+
+# Apenas testes de projetos
+docker compose exec app php artisan test --group=projects
+
+# Apenas testes de tarefas
+docker compose exec app php artisan test --group=tasks
+
+# Com cobertura (requer Xdebug ativo)
+docker compose exec app php artisan test --coverage
 ```
 
-### 6️⃣ Run the app
+## Convenção de branches (Gitflow simplificado)
+
+| Branch      | Finalidade                                |
+| ----------- | ----------------------------------------- |
+| `main`      | Código estável, origem de tags e releases |
+| `develop`   | Integração contínua de features           |
+| `feature/*` | Novas funcionalidades                     |
+| `fix/*`     | Correções de bugs                         |
+| `chore/*`   | Tarefas de infraestrutura, dependências   |
+
+## Convenção de commits (Conventional Commits)
+
+```
+<tipo>(escopo opcional): descrição curta
+
+feat(tasks): add predecessor validation
+fix(projects): prevent deletion with active tasks
+chore(docker): update php base image to 8.4
+docs(readme): add deploy instructions
+test(tasks): add feature tests for status update
+```
+
+Tipos aceitos: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`.
+
+## Build Docker
 
 ```bash
-docker exec -it starterkit-app npm run dev
+# Build da imagem de produção
+docker build -f Dockerfile.prod -t yanbpenalva/miniworld:latest .
+
+# Rodar com compose de produção
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-Access: **[http://localhost:8001](http://localhost:8001)**
+## Docker Hub
 
----
+Imagem pública disponível em:
 
-## 🪝 Husky (Git Hooks)
+```
+docker pull yanbpenalva/miniworld:latest
+```
 
-The project uses **Husky** to enforce pre-commit and pre-push checks (lint, tests, commit validation).
+Repositório: https://hub.docker.com/r/yanbpenalva/miniworld
 
-### Setup
+## CI/CD
 
-After dependencies installation:
+O pipeline é acionado automaticamente ao criar uma tag no padrão `vX.Y.Z` na branch `main`.
 
 ```bash
-npx husky init
+# Criar e publicar uma tag
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-> Do **not** overwrite existing hooks — this repository already includes custom `pre-commit` and `pre-push` scripts.
+O GitHub Actions irá:
 
-If Husky overwrites them, restore:
+1. Fazer checkout do código
+2. Buildar a imagem usando `Dockerfile.prod`
+3. Publicar no Docker Hub com a tag `v1.0.0` e `latest`
 
-```bash
-git restore .husky/pre-commit .husky/pre-push
-```
+### Secrets necessários no GitHub
 
----
+| Secret               | Valor                                                               |
+| -------------------- | ------------------------------------------------------------------- |
+| `DOCKERHUB_USERNAME` | `yanbpenalva`                                                       |
+| `DOCKERHUB_TOKEN`    | Access Token gerado em hub.docker.com → Account Settings → Security |
 
-## 🛠️ Database Configuration
+Para gerar o token: https://hub.docker.com/settings/security → **New Access Token**.
 
-> PostgreSQL 16 is the default database.
-> Created automatically on first container startup.
+## Trade-offs e melhorias futuras
 
-To access manually inside the container:
-
-```bash
-docker exec -it starterkit-db psql -U postgres -d starterkit
-```
-
----
-
-## 🧩 Fix Access Permissions (Spatie Permission Cache)
-
-If a user has correct permissions in the database but still receives:
-
-> “You do not have permission to perform this action.”
-
-Run inside the container:
-
-```bash
-docker compose exec starterkit-app php artisan permission:cache-reset
-```
-
-### Versions <5.x:
-
-```bash
-docker compose exec starterkit-app php artisan cache:forget spatie.permission.cache
-```
-
----
-
-## 📌 Key Features
-
-- **Laravel 13** — Modular, RESTful backend
-- **Vue 3 + Quasar** — Modern reactive UI
-- **Spatie Permission** — Role & permission system
-- **Spatie Activity Log** — Transparent audit trail
-- **PestPHP** — Expressive test framework
-- **Larastan + PHP Insights** — Static analysis & code quality
-- **Scramble** — Automatic API documentation
-- **Pulse + Telescope + Debugbar + Horizon** — Monitoring and debugging
-
----
-
-## ⚙️ Technology Stack
-
-- **Backend:** Laravel 13 (PHP 8.4 on Alpine)
-- **Frontend:** Vue 3.5 + Quasar Framework + Vite
-- **Database:** PostgreSQL 16
-- **Cache/Queue:** Redis 7
-- **Mail:** Mailpit (SMTP emulator)
-- **Containerization:** Docker Compose
-- **Testing:** PestPHP
-- **Static Analysis:** Larastan
-- **Monitoring:** Pulse, Telescope, Debugbar, Horizon
-
----
-
-## ⚙️ Queues and Horizon Monitoring
-
-The Starter Kit integrates **Redis queues** and **Laravel Horizon** for distributed asynchronous job execution and real-time monitoring.
-
-### 🧠 How It Works
-
-- **Jobs** are dispatched using Redis queues via `queue:work`.
-- **Supervisor** automatically manages the worker lifecycle (restart, retry, timeout).
-- **Horizon** provides a dashboard for job tracking, performance metrics, and failure insights.
-
-### Example Job Dispatch
-
-```php
-dispatch(new ImportProcessJob())->onQueue('imports');
-dispatch(new SendEmailJob())->onQueue('emails');
-```
-
-Each queue runs independently, enabling **parallel processing** and **load distribution**.
-
-### Supervisor Configuration Example
-
-```ini
-[program:laravel-queue]
-command=/usr/local/bin/php /var/www/html/artisan queue:work redis --queue=default --daemon --tries=3 --max-time=3600
-autostart=true
-autorestart=true
-user=www-data
-```
-
-- `--tries`: number of attempts before failure logging.
-- `--max-time`: ensures workers restart periodically to prevent memory leaks.
-- `--daemon`: keeps workers running persistently.
-
-### Access Horizon Dashboard
-
-```
-http://localhost:8001/horizon
-```
-
-> Access is restricted to **admin users only** in all environments (local, staging, production).
-
-Authorization defined in:
-
-```php
-Gate::define('viewHorizon', fn($user) => $user && $user->isAdmin());
-```
-
-### Horizon Features
-
-- Real-time job and queue stats
-- Retry failed jobs
-- Queue balancing and prioritization
-- Job execution metrics and runtime distribution
-
-### Recommended Practices
-
-- Name queues descriptively (`imports`, `emails`, `notifications`)
-- Split heavy operations into chunks (`chunk(100)`)
-- Avoid complex listeners — isolate logic in jobs
-- Use `Bus::batch()` for large batch operations
-
----
-
-## 🚀 Project Architecture
-
-Applies **Action Pattern** for isolated business logic and **Event-Driven Design (EDD)** for asynchronous processes.
-
----
-
-## 🧱 Docker Services
-
-All services are defined in `docker-compose.yaml`.
-
----
-
-## 🧪 Testing
-
-### 1️⃣ Test Database
-
-If `starterkit_test` is not created automatically, run:
-
-```bash
-chmod +x docker-entrypoint-initdb.sh
-./docker-entrypoint-initdb.sh
-```
-
-### 2️⃣ Run Tests
-
-```bash
-docker compose exec starterkit-app composer test
-```
-
-With coverage:
-
-```bash
-docker compose exec starterkit-app composer test:coverage
-```
-
-Parallel mode:
-
-```bash
-docker compose exec starterkit-app env APP_ENV=testing php artisan test --parallel
-```
-
----
-
-## 🧠 Best Practices
-
-**Security**
-
-- `APP_DEBUG=false` in production
-- Generate unique `APP_KEY`
-- Protect routes with `auth:sanctum`
-- Mask sensitive logs
-
-**Performance**
-
-- Cache queries (tagged TTLs)
-- Optimize autoloaders/config caches
-- Use `DB::transaction()` for atomicity
-
-**Code Quality**
-
-- Maintain ≥80% coverage
-- Run Larastan + PHP Insights regularly
-- Keep controllers thin; logic in Actions
-
----
-
-## 🔄 Commit Conventions
-
-Follow **Conventional Commits**.
-
-```
-<type>: <Jira task ID> - <description>
-```
-
-**Types:** feat, fix, docs, refactor, test, perf, build, ci, ops, chore, revert
-
----
-
-## 📝 Code Standards
-
-- `declare(strict_types=1);` required
-- Method names ≤ 5 words
-- Use imperative verbs
-- Variables in `camelCase`
-- Routes follow `{resource}.{action}`
-- API versioning `/api/v1/...`
-- Coverage ≥ 80 lines
-
-### Static Analysis
-
-```bash
-docker exec -it starterkit-app composer run:phpstan
-```
-
-### Code Quality
-
-```bash
-docker exec -it starterkit-app composer run:phpinsights
-```
-
-### API Documentation
-
-```bash
-docker exec -it starterkit-app php artisan scramble:export
-```
-
-### Tests
-
-```bash
-docker exec -it starterkit-app composer test
-docker exec -it starterkit-app composer test:coverage
-```
-
----
-
-## ⚡ Makefile Shortcuts
-
-```bash
-make help
-```
-
-| Category      | Command                                          | Description                    |
-| ------------- | ------------------------------------------------ | ------------------------------ |
-| 📦 Containers | `make up` / `make down` / `make restart`         | Manage containers              |
-| 💻 Dev        | `make shell` / `make front`                      | Enter container / run frontend |
-| 🗄️ DB         | `make migrate` / `make rollback`                 | Manage migrations              |
-| 🧪 Tests      | `make test` / `make test-all`                    | Run test suites                |
-| ✨ Quality    | `make pint` / `make check`                       | Format and lint                |
-| 🛠️ Tools      | `make artisan` / `make queue` / `make telescope` | Laravel utilities              |
+- **Sanctum vs Passport**: Sanctum foi escolhido pela simplicidade. Para OAuth2 completo, Passport seria mais adequado.
+- **Progresso do projeto**: o cálculo de percentual de tarefas concluídas está previsto mas não implementado; pode ser adicionado como campo calculado no `ProjectResource`.
+- **Filas**: notificações e operações pesadas podem ser movidas para jobs com Redis como driver de fila, já disponível na infra.
+- **Testes de frontend**: cobertura de testes E2E com Playwright ou Cypress não foi incluída no escopo.
