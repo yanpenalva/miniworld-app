@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
@@ -184,6 +184,7 @@ return [
     | the aliases are "lazy" loaded so they don't hinder performance.
     |
     */
+    'force_https' => env('APP_FORCE_HTTPS', false),
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,

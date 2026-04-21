@@ -64,9 +64,10 @@ final class AppServiceProvider extends ServiceProvider
 
     protected function configureRequest(): void
     {
-        $this->app['request']->server->set('HTTPS', $this->app->environment() !== 'local');
+        if (config('app.force_https')) {
+            $this->app['request']->server->set('HTTPS', 'on');
+        }
     }
-
     protected function configureScramble(): void
     {
         Scramble::afterOpenApiGenerated(function (OpenApi $openApi) {
