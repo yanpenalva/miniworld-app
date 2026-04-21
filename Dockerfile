@@ -3,7 +3,9 @@ FROM node:24.5.0-alpine AS node
 FROM php:8.4-fpm-alpine AS base
 
 ARG APP_ENV=local
+ARG VITE_APP_VERSION=dev
 ENV APP_ENV=$APP_ENV \
+    VITE_APP_VERSION=$VITE_APP_VERSION \
     COMPOSER_ALLOW_SUPERUSER=1
 
 WORKDIR /var/www/html
@@ -11,23 +13,10 @@ WORKDIR /var/www/html
 RUN apk add --no-cache \
     postgresql16-dev postgresql16-client \
     clang16 llvm16 lz4-dev openssl-dev \
-    libzip-dev \
-    git \
-    curl-dev \
-    libxml2-dev \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    oniguruma-dev \
-    htop \
-    icu-dev \
-    unzip \
-    libwebp-dev \
-    zlib-dev \
-    bash \
-    tzdata \
-    wget \
-    busybox-suid \
+    libzip-dev git curl-dev libxml2-dev \
+    libpng-dev libjpeg-turbo-dev freetype-dev \
+    oniguruma-dev htop icu-dev unzip libwebp-dev \
+    zlib-dev bash tzdata wget busybox-suid \
     jpegoptim optipng pngquant gifsicle \
     && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS linux-headers \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
@@ -57,6 +46,8 @@ RUN if [ "$APP_ENV" = "production" ] || [ "$APP_ENV" = "staging" ]; then \
     else \
     npm ci; \
     fi
+
+COPY . .
 
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
