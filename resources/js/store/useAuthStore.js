@@ -11,14 +11,8 @@ const useAuthStore = defineStore('auth', {
     users: [],
     user: null,
     errors: null,
-    activeTab: 'ldap',
     externalCredentials: {
       email: '',
-      password: '',
-      remember: false,
-    },
-    ldapCredentials: {
-      name: '',
       password: '',
       remember: false,
     },
@@ -26,7 +20,7 @@ const useAuthStore = defineStore('auth', {
   persist: {
     key: 'auth',
     storage: localStorage,
-    paths: ['permissions', 'roles', 'contributor', 'user', 'activeTab'],
+    paths: ['permissions', 'roles', 'contributor', 'user'],
   },
   getters: {
     isUserLoggedIn(state) {
@@ -47,9 +41,6 @@ const useAuthStore = defineStore('auth', {
     getErrors() {
       return this.errors;
     },
-    getActiveTab(state) {
-      return state.activeTab;
-    },
   },
   actions: {
     async list(params) {
@@ -66,7 +57,6 @@ const useAuthStore = defineStore('auth', {
         email: user.email,
       };
     },
-
     logout() {
       this.$reset();
       LocalStorage.clear();
@@ -78,25 +68,11 @@ const useAuthStore = defineStore('auth', {
       this.roles = data?.roles;
       this.contributor = data?.contributor;
     },
-    setActiveTab(tab) {
-      this.activeTab = tab;
-    },
     setExternalCredentials(credentials) {
       this.externalCredentials = credentials;
     },
-    setLdapCredentials(credentials) {
-      this.ldapCredentials = credentials;
-    },
     clearExternalCredentials() {
       this.externalCredentials = { email: '', password: '', remember: false };
-    },
-    clearLdapCredentials() {
-      this.ldapCredentials = { name: '', password: '', remember: false };
-    },
-    clearCredentialsOnTabChange() {
-      this.activeTab === 'external'
-        ? this.clearLdapCredentials()
-        : this.clearExternalCredentials();
     },
   },
 });

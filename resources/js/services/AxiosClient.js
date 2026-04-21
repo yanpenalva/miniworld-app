@@ -28,13 +28,13 @@ http.interceptors.response.use(
 
     const timeoutMessage =
       'Não foi possível carregar esta página corretamente, verifique sua conexão com a internet e tente novamente';
+
     if (error.code === 'ECONNABORTED') {
       notify(timeoutMessage, 'negative');
       return Promise.reject({ message: timeoutMessage });
     }
 
-    let { status, data } = error.response;
-
+    const { status, data } = error.response;
     const isValidData = data && typeof data === 'object' && !(data instanceof Blob);
     const message = isValidData ? data?.message || 'Erro inesperado' : 'Erro inesperado';
 
@@ -47,47 +47,38 @@ http.interceptors.response.use(
 function handleErrorResponse(status, message, data, config) {
   const authStore = useAuthStore();
 
-  const isAuthRoute = ['/api/v1/login', '/api/v1/ldap/login'].some((route) =>
-    config.url.includes(route),
-  );
+  const isAuthRoute = config.url.includes('/api/v1/login');
 
   const logoutAndRedirect = () => {
     authStore.logout();
     router.push({ name: 'login' });
   };
 
-  // Trata cada status de erro explicitamente aqui e redirecionar conforme necessário.
   switch (status) {
-    case 401:
+    case 401: {
       notify(message, 'negative');
       const isInvalidCredentials =
-        isAuthRoute ||
-        message === 'Usuário ou senha inválidos' ||
-        message ===
-          'O domínio não é válido. Os domínios válidos são @uefs.br, @uefs.local e @discente.uefs.br.';
+        isAuthRoute || message === 'Usuário ou senha inválidos';
       if (!isInvalidCredentials) logoutAndRedirect();
       break;
+    }
 
-    case 403:
-      const errors = [
-        'Usuário não ativado',
-        'Usuário inativo',
-        'Usuário não é servidor UEFS',
-      ];
+    case 403: {
       const errorMessage = data?.error || data?.errors;
-      if (errors.includes(errorMessage)) {
+      const blockedErrors = ['Usuário não ativado', 'Usuário inativo'];
+      if (blockedErrors.includes(errorMessage)) {
         notify(message, 'negative');
       }
-      router.go(-1);
-
       break;
+    }
 
-    case 404:
-      const errorMessage404 = data?.message.includes('No query results for model')
+    case 404: {
+      const errorMessage404 = data?.message?.includes('No query results for model')
         ? 'Nenhum registro foi encontrado'
         : data?.message;
       notify(errorMessage404, 'negative');
       break;
+    }
 
     case 408:
       notify('Tempo de solicitação esgotado', 'negative');
@@ -102,16 +93,17 @@ function handleErrorResponse(status, message, data, config) {
       router.replace('/');
       break;
 
-    case 422:
-      const errors422 = data?.errors || {};
-
+    case 422: {
       if (data?.message) {
         notify(data.message, 'negative');
         return;
       }
-      const messagesErrors = Object.values(errors422);
-      messagesErrors.slice(0, 8).forEach((msg) => notify(msg.toString(), 'negative'));
+      const errors422 = data?.errors || {};
+      Object.values(errors422)
+        .slice(0, 8)
+        .forEach((msg) => notify(msg.toString(), 'negative'));
       break;
+    }
 
     case 429:
       notify(message, 'negative');
@@ -125,17 +117,17 @@ function handleErrorResponse(status, message, data, config) {
       );
       break;
 
-    default:
+    default: {
       const customMessage =
         message === 'This action is unauthorized.'
           ? 'Você não tem permissão para acessar este recurso'
           : message;
-
       notify(customMessage, 'negative');
       if (message === 'Unauthorized.' || message === 'This action is unauthorized.') {
         router.replace('/admin/inicio');
       }
       break;
+    }
   }
 }
 

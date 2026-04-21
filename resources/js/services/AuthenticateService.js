@@ -12,4 +12,8 @@ async function myProfile() {
   return await http.get('/api/v1/auth/my-profile');
 }
 
-export { authenticate, unauthenticate, myProfile };
+async function register(data) {
+  return await http.post('/api/v1/register', data);
+}
+
+export { authenticate, myProfile, register, unauthenticate };

@@ -2,34 +2,27 @@
 import useAuthenticate from '@/composables/Authenticate/useAuthenticate';
 import useAuthStore from '@/store/useAuthStore';
 import notify from '@/utils/notify';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
-
 const showPassword = ref(false);
 const isLoading = ref(false);
 const { login, myProfile } = useAuthenticate();
 const router = useRouter();
 const route = useRoute();
 
-onMounted(() => {
-  authStore.clearExternalCredentials();
-  authStore.clearLdapCredentials();
-});
+onMounted(() => authStore.clearExternalCredentials());
 
 const auth = async () => {
   isLoading.value = true;
   try {
     await login({ ...authStore.externalCredentials });
     await myProfile();
-
     notify('Logado com Sucesso', 'positive');
-
     const { routeName, id } = route.query || {};
     router.push(routeName && id ? { name: routeName, params: { id } } : '/admin/inicio');
   } catch (error) {
-    isLoading.value = false;
     throw new Error('Erro ao autenticar: ' + error.message);
   } finally {
     isLoading.value = false;
@@ -39,20 +32,6 @@ const auth = async () => {
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
-
-watch(
-  () => authStore.externalCredentials.email,
-  (newEmail) => {
-    const ldapDomains = ['@uefs.br', '@uefs.local', '@discente.uefs.br'];
-    ldapDomains.some((domain) => newEmail.endsWith(domain))
-      ? (authStore.setLdapCredentials({
-          ...authStore.ldapCredentials,
-          name: newEmail,
-        }),
-        authStore.setActiveTab('ldap'))
-      : null;
-  },
-);
 </script>
 
 <template>
@@ -79,6 +58,7 @@ watch(
           @click="togglePasswordVisibility" />
       </template>
     </q-input>
+
     <div class="row justify-between">
       <div class="col-md-4">
         <q-checkbox
@@ -92,6 +72,7 @@ watch(
         </RouterLink>
       </div>
     </div>
+
     <div class="q-mt-xs">
       <q-btn
         :loading="isLoading"

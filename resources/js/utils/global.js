@@ -1,9 +1,9 @@
 const useGlobal = () => {
   const versions = new Map([
-    ['local', '2.0.0'],
-    ['development', '2.0.0'],
-    ['staging', '2.0.0'],
-    ['production', '2.0.0'],
+    ['local', '0.0.0'],
+    ['development', '0.0.0'],
+    ['staging', '0.0.0'],
+    ['production', '0.0.0'],
   ]);
 
   const env = import.meta.env.VITE_APP_ENV;

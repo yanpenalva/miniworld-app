@@ -1,36 +1,16 @@
 @component('mail::message')
-<h1 style="color:#EC7000; font-size:22px; font-weight:bold; margin-bottom:16px;">
-    Hello {{ $name }}!
-</h1>
 
-<p style="font-size:16px; margin-bottom:20px;">
-    A password change request has been submitted through the Miniworld system.
-</p>
+<h1>Olá, {{ $name }}!</h1>
 
-<p style="text-align:center; margin: 32px 0;">
-    <a href="{{ $link }}" style="
-            background-color:#E65100;
-            color:#ffffff;
-            padding:12px 20px;
-            text-decoration:none;
-            border-radius:8px;
-            font-size:15px;
-            display:inline-block;
-        ">
-        Reset my password
-    </a>
-</p>
+<p>Uma solicitação de redefinição de senha foi recebida para sua conta no sistema MiniWorld.</p>
 
-<p style="color:#555; font-size:14px; margin-top:20px;">
-    If you did not request this email, simply ignore it.
-</p>
+@component('mail::button', ['url' => $link, 'color' => 'primary'])
+Redefinir minha senha
+@endcomponent
 
-<p style="color:#555; font-size:14px;">
-    Your password will only be changed after accessing the link above.
-</p>
+<p>Se você não solicitou a alteração, ignore este e-mail. Sua senha só será alterada após acessar o link acima.</p>
 
-<p style="margin-top:24px; font-size:14px; color:#333;">
-    Sincerely,<br>
-    miniworld-app Laravue Team
-</p>
+Atenciosamente,<br>
+Equipe MiniWorld
+
 @endcomponent
