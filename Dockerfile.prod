@@ -54,17 +54,16 @@ RUN composer install \
     --no-scripts \
     && composer clear-cache
 
-COPY package.json package-lock.json ./
-RUN npm ci && npm prune --omit=dev
-
 ARG VITE_APP_VERSION=0.0.0
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
 COPY . .
 
 RUN mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions \
-        storage/framework/views storage/logs \
+    storage/framework/views storage/logs \
     && chmod -R 775 bootstrap/cache storage
+
+RUN npm ci && npm prune --omit=dev
 
 RUN APP_KEY=base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa= \
     composer run-script post-autoload-dump \
