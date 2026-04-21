@@ -405,5 +405,4 @@ Para gerar o token: https://hub.docker.com/settings/security → **New Access To
 ## Trade-offs e melhorias futuras
 
 - **Sanctum vs Passport**: Sanctum foi escolhido pela simplicidade. Para OAuth2 completo, Passport seria mais adequado.
-- **Filas**: notificações e operações pesadas podem ser movidas para jobs com Redis como driver de fila, já disponível na infra.
 - **Testes de frontend**: cobertura E2E com Playwright ou Cypress não foi incluída no escopo.
