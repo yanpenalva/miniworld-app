@@ -37,7 +37,7 @@ RUN apk add --no-cache \
 RUN apk add --no-cache python3 py3-pip \
     && pip install --no-cache-dir --break-system-packages 'setuptools<81' supervisor
 
-COPY ./docker/PHP/php-production.ini /usr/local/etc/php/conf.d/custom.ini
+COPY ./docker/PHP/php-prd.ini /usr/local/etc/php/conf.d/custom.ini
 COPY ./docker/SUPERVISOR/supervisord.conf /etc/supervisord.conf
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
