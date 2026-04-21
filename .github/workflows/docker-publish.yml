@@ -1,10 +1,16 @@
-name: Docker Publish
+name: Miniworld App — Publish Docker Image
 
 on:
     push:
         tags:
             - "v[0-9]+.[0-9]+.[0-9]*"
             - "V[0-9]+.[0-9]+.[0-9]*"
+            - "v[0-9]+.[0-9]+.[0-9]*.hf[0-9]+"
+            - "V[0-9]+.[0-9]+.[0-9]*.hf[0-9]+"
+            - "v[0-9]+.[0-9]+.[0-9]*.HF[0-9]+"
+            - "V[0-9]+.[0-9]+.[0-9]*.HF[0-9]+"
+            - "v[0-9]+.[0-9]+.[0-9]*.Hf[0-9]+"
+            - "V[0-9]+.[0-9]+.[0-9]*.Hf[0-9]+"
 
 jobs:
     build-and-push:
@@ -22,13 +28,19 @@ jobs:
 
             - name: Extract tag
               id: meta
-              run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+              run: |
+                  RAW=${GITHUB_REF#refs/tags/}
+                  CLEAN=${RAW#[vV]}
+                  echo "tag=v${CLEAN}" >> $GITHUB_OUTPUT
 
             - name: Build and push
               uses: docker/build-push-action@v5
               with:
                   context: .
+                  file: Dockerfile.prod
                   push: true
+                  build-args: |
+                      VITE_APP_VERSION=${{ steps.meta.outputs.tag }}
                   tags: |
                       ${{ secrets.DOCKERHUB_USERNAME }}/miniworld-app:${{ steps.meta.outputs.tag }}
                       ${{ secrets.DOCKERHUB_USERNAME }}/miniworld-app:latest

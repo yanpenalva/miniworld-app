@@ -24,3 +24,11 @@ supervisord.log
 supervisord.pid
 packages.txt
 var/phpstan
+
+# IDE helpers (gerados localmente)
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+
+# API docs gerada (Scramble)
+api.json
