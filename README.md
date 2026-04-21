@@ -2,6 +2,30 @@
 
 Aplicação fullstack de gerenciamento de projetos e tarefas, desenvolvida como teste técnico.
 
+---
+
+## 📑 Índice
+
+1. [Stack](#stack)
+2. [Por que Sanctum?](#por-que-sanctum)
+3. [Entidades e regras de negócio](#entidades-e-regras-de-negócio)
+4. [Pré-requisitos](#pré-requisitos)
+5. [Instalação](#instalação)
+6. [Credenciais padrão](#credenciais-padrão)
+7. [Primeiro acesso e ativação de usuário](#primeiro-acesso-e-ativação-de-usuário)
+8. [Permissões](#permissões)
+9. [Migrations e seeders](#migrations-e-seeders)
+10. [Testes](#testes)
+11. [Filas e Horizon](#filas-e-horizon)
+12. [Convenção de branches](#convenção-de-branches)
+13. [Convenção de commits](#convenção-de-commits)
+14. [Padrões de código](#padrões-de-código)
+15. [Build Docker](#build-docker)
+16. [CI/CD](#cicd)
+17. [Trade-offs e melhorias futuras](#trade-offs-e-melhorias-futuras)
+
+---
+
 ## Stack
 
 | Camada          | Tecnologia                    |
@@ -15,9 +39,13 @@ Aplicação fullstack de gerenciamento de projetos e tarefas, desenvolvida como 
 | CI/CD           | GitHub Actions                |
 | Registry        | Docker Hub                    |
 
+---
+
 ## Por que Sanctum?
 
 Sanctum foi escolhido por ser a solução oficial do Laravel para APIs SPA/mobile com autenticação stateless via token Bearer. É leve, sem overhead de OAuth, e adequado ao escopo do teste.
+
+---
 
 ## Entidades e regras de negócio
 
@@ -37,42 +65,90 @@ Sanctum foi escolhido por ser a solução oficial do Laravel para APIs SPA/mobil
 - `end_date` deve ser maior ou igual a `start_date`
 - Não pode ser excluída se for predecessora de outra tarefa
 
+---
+
 ## Pré-requisitos
 
 - Docker >= 24
 - Docker Compose >= 2.20
 - Git
 
-## Como rodar localmente
+---
+
+## Instalação
+
+### 1. Clone o repositório
 
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/yanbpenalva/miniworld.git
-cd miniworld
+git clone https://github.com/yanpenalva/miniworld-app.git
+cd miniworld-app
+```
 
-# 2. Copie o .env
+### 2. Copie o .env
+
+```bash
 cp .env.example .env
+```
 
-# 3. Suba os containers
+As variáveis relevantes já vêm preenchidas no `.env.example`:
+
+```dotenv
+DB_CONNECTION=pgsql
+DB_HOST=db
+DB_PORT=5432
+DB_DATABASE=miniworld-app
+DB_USERNAME=postgres
+DB_PASSWORD=admin
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+APP_ADMIN_EMAIL="admin@admin.com"
+APP_ADMIN_PASSWORD="123"
+APP_ADMIN_ROLE="Administrador"
+```
+
+### 3. Suba os containers
+
+```bash
 docker compose up -d --build
+```
 
-# 4. Instale dependências e gere a key
+### 4. Instale dependências e gere a key
+
+```bash
 docker compose exec app composer install
 docker compose exec app php artisan key:generate
+```
 
-# 5. Execute as migrations
-docker compose exec app php artisan migrate
+### 5. Execute migrations e seeders
 
-# 6. (Opcional) Popule com dados de exemplo
-docker compose exec app php artisan db:seed
+```bash
+docker compose exec app php artisan migrate --seed
+```
+
+### 6. Corrija permissões (Linux/Mac)
+
+```bash
+chmod +x permissions.sh
+./permissions.sh
+```
+
+### 7. Inicie o frontend
+
+```bash
+docker compose exec app npm run dev
 ```
 
 A aplicação estará disponível em:
 
-| Serviço            | URL                   |
-| ------------------ | --------------------- |
-| App (frontend/API) | http://localhost:8001 |
-| Mailpit (e-mail)   | http://localhost:8025 |
+| Serviço            | URL                           |
+| ------------------ | ----------------------------- |
+| App (frontend/API) | http://localhost:8001         |
+| Mailpit (e-mail)   | http://localhost:8025         |
+| Horizon (filas)    | http://localhost:8001/horizon |
+
+---
 
 ## Credenciais padrão
 
@@ -88,12 +164,15 @@ As credenciais abaixo estão expostas intencionalmente por ser um projeto de tes
 | Usuário   | `postgres`      |
 | Senha     | `admin`         |
 
-### Usuário demo (após seeder)
+### Usuário administrador (após seeder)
 
-| Parâmetro | Valor                 |
-| --------- | --------------------- |
-| E-mail    | `demo@miniworld.test` |
-| Senha     | `password`            |
+O seeder lê as variáveis `APP_ADMIN_EMAIL`, `APP_ADMIN_PASSWORD` e `APP_ADMIN_ROLE` do `.env` para criar o usuário inicial com perfil `Administrador`.
+
+| Parâmetro | Valor             |
+| --------- | ----------------- |
+| E-mail    | `admin@admin.com` |
+| Senha     | `123`             |
+| Perfil    | `Administrador`   |
 
 ### Redis
 
@@ -102,6 +181,43 @@ As credenciais abaixo estão expostas intencionalmente por ser um projeto de tes
 | Host      | `localhost` |
 | Porta     | `6379`      |
 | Senha     | nenhuma     |
+
+---
+
+## Primeiro acesso e ativação de usuário
+
+O fluxo de acesso segue duas etapas obrigatórias:
+
+1. **Cadastro e verificação de e-mail** — ao se registrar, o sistema envia um e-mail de verificação. Em ambiente local, esse e-mail é capturado pelo **Mailpit** em `http://localhost:8025`. O usuário deve clicar no link de confirmação para validar o endereço.
+
+2. **Ativação pelo administrador** — mesmo após verificar o e-mail, o usuário **não possui acesso** até que o administrador geral (criado pelo seeder) o ative manualmente no **gerenciamento de usuários**. Acesse com as credenciais do administrador e ative o cadastro na listagem de usuários.
+
+> Esse fluxo garante controle total sobre quem pode acessar o sistema, evitando acesso não autorizado por auto-cadastro.
+
+---
+
+## Permissões
+
+Se um usuário possuir as permissões corretas no banco mas ainda receber erro de acesso negado, o cache do Spatie Permission pode estar desatualizado. Rode dentro do container:
+
+```bash
+docker compose exec app php artisan permission:cache-reset
+```
+
+Para versões do Spatie Permission < 5.x:
+
+```bash
+docker compose exec app php artisan cache:forget spatie.permission.cache
+```
+
+Em caso de problemas de permissão de arquivos no host (Linux/Mac), execute o script de correção:
+
+```bash
+chmod +x permissions.sh
+./permissions.sh
+```
+
+---
 
 ## Migrations e seeders
 
@@ -119,7 +235,22 @@ docker compose exec app php artisan db:seed
 docker compose exec app php artisan migrate:fresh --seed
 ```
 
-## Executar testes
+---
+
+## Testes
+
+### 1. Banco de testes
+
+Antes de rodar os testes, garanta que o banco de testes foi criado:
+
+```bash
+chmod +x docker-entrypoint-initdb.sh
+./docker-entrypoint-initdb.sh
+```
+
+Esse script cria o banco `miniworld-app_test` necessário para o ambiente de testes isolado.
+
+### 2. Rodar testes
 
 ```bash
 # Todos os testes
@@ -133,9 +264,57 @@ docker compose exec app php artisan test --group=tasks
 
 # Com cobertura (requer Xdebug ativo)
 docker compose exec app php artisan test --coverage
+
+# Modo paralelo
+docker compose exec app env APP_ENV=testing php artisan test --parallel
 ```
 
-## Convenção de branches (Gitflow simplificado)
+### Análise estática e qualidade
+
+```bash
+# PHPStan
+docker compose exec app composer run:phpstan
+
+# PHP Insights
+docker compose exec app composer run:phpinsights
+```
+
+### Documentação da API
+
+```bash
+docker compose exec app php artisan scramble:export
+```
+
+---
+
+## Filas e Horizon
+
+O projeto usa **Redis** como driver de filas e **Laravel Horizon** para monitoramento em tempo real.
+
+### Como funciona
+
+- Jobs são despachados via filas Redis com `queue:work`
+- **Supervisor** gerencia o ciclo de vida dos workers (restart, retry, timeout)
+- **Horizon** provê dashboard de rastreamento, métricas e falhas
+
+### Exemplo de dispatch
+
+```php
+dispatch(new ProcessTaskJob())->onQueue('tasks');
+dispatch(new SendNotificationJob())->onQueue('notifications');
+```
+
+### Acesso ao Horizon
+
+```
+http://localhost:8001/horizon
+```
+
+> Acesso restrito a usuários com perfil **Administrador**.
+
+---
+
+## Convenção de branches
 
 | Branch      | Finalidade                                |
 | ----------- | ----------------------------------------- |
@@ -145,7 +324,11 @@ docker compose exec app php artisan test --coverage
 | `fix/*`     | Correções de bugs                         |
 | `chore/*`   | Tarefas de infraestrutura, dependências   |
 
-## Convenção de commits (Conventional Commits)
+---
+
+## Convenção de commits
+
+Segue **Conventional Commits**:
 
 ```
 <tipo>(escopo opcional): descrição curta
@@ -159,6 +342,20 @@ test(tasks): add feature tests for status update
 
 Tipos aceitos: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`.
 
+---
+
+## Padrões de código
+
+- `declare(strict_types=1)` obrigatório em todos os arquivos PHP
+- Nomes de métodos com no máximo 5 palavras, verbos no imperativo
+- Variáveis em `camelCase`
+- Rotas seguem `{resource}.{action}`
+- Versionamento de API: `/api/v1/...`
+- Cobertura mínima de testes: 80% de linhas
+- Controllers finos — lógica em Actions
+
+---
+
 ## Build Docker
 
 ```bash
@@ -171,20 +368,19 @@ docker compose -f docker-compose.prod.yml up -d
 
 ## Docker Hub
 
-Imagem pública disponível em:
-
-```
+```bash
 docker pull yanbpenalva/miniworld:latest
 ```
 
 Repositório: https://hub.docker.com/r/yanbpenalva/miniworld
 
+---
+
 ## CI/CD
 
-O pipeline é acionado automaticamente ao criar uma tag no padrão `vX.Y.Z` na branch `main`.
+O pipeline é acionado ao criar uma tag no padrão `vX.Y.Z` na branch `main`.
 
 ```bash
-# Criar e publicar uma tag
 git tag v1.0.0
 git push origin v1.0.0
 ```
@@ -204,9 +400,10 @@ O GitHub Actions irá:
 
 Para gerar o token: https://hub.docker.com/settings/security → **New Access Token**.
 
+---
+
 ## Trade-offs e melhorias futuras
 
 - **Sanctum vs Passport**: Sanctum foi escolhido pela simplicidade. Para OAuth2 completo, Passport seria mais adequado.
-- **Progresso do projeto**: o cálculo de percentual de tarefas concluídas está previsto mas não implementado; pode ser adicionado como campo calculado no `ProjectResource`.
 - **Filas**: notificações e operações pesadas podem ser movidas para jobs com Redis como driver de fila, já disponível na infra.
-- **Testes de frontend**: cobertura de testes E2E com Playwright ou Cypress não foi incluída no escopo.
+- **Testes de frontend**: cobertura E2E com Playwright ou Cypress não foi incluída no escopo.
