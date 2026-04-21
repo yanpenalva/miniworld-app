@@ -51,14 +51,19 @@ RUN composer install \
     --prefer-dist \
     --no-dev \
     --optimize-autoloader \
+    --no-scripts \
     && composer clear-cache
 
 COPY package.json package-lock.json ./
 RUN npm ci && npm prune --omit=dev
 
+ARG VITE_APP_VERSION=0.0.0
+ENV VITE_APP_VERSION=${VITE_APP_VERSION}
+
 COPY . .
 
-RUN npm run build \
+RUN composer run-script post-autoload-dump \
+    && npm run build \
     && rm -rf node_modules
 
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
